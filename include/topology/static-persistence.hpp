@@ -1,6 +1,6 @@
-#include <utilities/log.h>
-#include <utilities/containers.h>
-#include <utilities/property-maps.h>
+#include "../utilities/log.h"
+#include "../utilities/containers.h"
+#include "../utilities/property-maps.h"
 
 #include <boost/utility/enable_if.hpp>
 #include <boost/utility.hpp>
@@ -45,14 +45,18 @@ void StaticPersistence<D, CT, OT, E, Cmp>::initialize(
 }
 
 template <class D, class CT, class OT, class E, class Cmp>
-void StaticPersistence<D, CT, OT, E, Cmp>::pair_simplices(bool progress) {
-  if (progress) {
-    PairVisitor visitor(size());
-    pair_simplices<PairVisitor>(begin(), end(), false, visitor);
-  } else {
+//void StaticPersistence<D, CT, OT, E, Cmp>::pair_simplices(bool progress) {
+void StaticPersistence<D, CT, OT, E, Cmp>::pair_simplices() {
+  // if (progress) {
+  //   PairVisitor visitor(size());
+  //   pair_simplices<PairVisitor>(begin(), end(), false, visitor);
+  // } else {
+  //   PairVisitorNoProgress visitor;
+  //   pair_simplices<PairVisitorNoProgress>(begin(), end(), false, visitor);
+  // }
+
     PairVisitorNoProgress visitor;
     pair_simplices<PairVisitorNoProgress>(begin(), end(), false, visitor);
-  }
 }
 
 template <class D, class CT, class OT, class E, class Cmp>

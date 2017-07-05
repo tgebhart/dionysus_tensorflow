@@ -1,4 +1,8 @@
-#include <include/utilities/log.h>
+#include "tensorflow/core/framework/op.h"
+#include "tensorflow/core/framework/shape_inference.h"
+#include "tensorflow/core/framework/op_kernel.h"
+
+#include "include/utilities/log.h"
 
 #include "include/topology/simplex.h"
 #include "include/topology/filtration.h"
@@ -18,6 +22,16 @@
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/serialization/vector.hpp>
 #endif
+
+using namespace tensorflow;
+
+REGISTER_OP("LandscapeTest")
+    .Input("input_tensor: int32")
+    .Output("output_tensor: int32")
+    .SetShapeFn([](::tensorflow::shape_inference::InferenceContext* c) {
+      c->set_output(0, c->input(0));
+      return Status::OK();
+    });
 
 typedef unsigned Vertex;
 typedef Simplex<Vertex, double> Smplx;
@@ -62,98 +76,92 @@ void fillTriangleSimplices(Fltr& c) {
   c.push_back(Smplx(bg, bg + 3, 5));        // ABC
 }
 
-int main(int argc, char** argv) {
-#ifdef LOGGING
-  rlog::RLogInit(argc, argv);
+class LandscapeTestOp : public OpKernel {
+public:
+  explicit LandscapeTestOp(OpKernelConstruction* context) : OpKernel(context) {}
 
-  stdoutLog.subscribeTo(RLOG_CHANNEL("topology/persistence"));
-// stdoutLog.subscribeTo(RLOG_CHANNEL("topology/chain"));
-// stdoutLog.subscribeTo(RLOG_CHANNEL("topology/vineyard"));
-#endif
+  void Compute(OpKernelContext* context) override {
+    // get input tensor
+    const Tensor& input_tensor = context->input(0);
+    auto input = input_tensor.flat<int32>();
 
-  Fltr f;
-  fillTriangleSimplices(f);
-  std::cout << "Simplices filled" << std::endl;
-  for (Fltr::Index cur = f.begin(); cur != f.end(); ++cur)
-    std::cout << "  " << *cur << std::endl;
+    // create output tensor
+    Tensor* output_tensor = NULL;
+    OP_REQUIRES_OK(context, context->allocate_output(0, input_tensor.shape(), &output_tensor));
+    auto output_flat = output_tensor->flat<int32>();
 
-#if 1  // testing serialization of the Filtration (really Simplex)
-  {
-    std::ofstream ofs("complex");
-    boost::archive::text_oarchive oa(ofs);
-    oa << f;
-    f.clear();
-  }
+    Fltr f;
+    fillTriangleSimplices(f);
+    std::cout << "Simplices filled" << std::endl;
+    for (Fltr::Index cur = f.begin(); cur != f.end(); ++cur)
+      std::cout << "  " << *cur << std::endl;
 
-  {
-    std::ifstream ifs("complex");
-    boost::archive::text_iarchive ia(ifs);
-    ia >> f;
-  }
-#endif
 
-  f.sort(Smplx::DataComparison());
-  std::cout << "Filtration initialized" << std::endl;
-  std::cout << f << std::endl;
+    f.sort(Smplx::DataComparison());
+    std::cout << "Filtration initialized" << std::endl;
+    std::cout << f << std::endl;
 
-  Persistence p(f);
-  std::cout << "Persistence initialized" << std::endl;
+    Persistence p(f);
+    std::cout << "Persistence initialized" << std::endl;
 
-  p.pair_simplices();
-  std::cout << "Simplices paired" << std::endl;
+    p.pair_simplices();
+    std::cout << "Simplices paired" << std::endl;
 
-  Persistence::SimplexMap<Fltr> m = p.make_simplex_map(f);
-  std::map<Dimension, PDgm> dgms;
-  init_diagrams(dgms, p.begin(), p.end(),
-                evaluate_through_map(m, Smplx::DataEvaluator()),
-                evaluate_through_map(m, Smplx::DimensionExtractor()));
+    Persistence::SimplexMap<Fltr> m = p.make_simplex_map(f);
+    std::map<Dimension, PDgm> dgms;
+    init_diagrams(dgms, p.begin(), p.end(),
+                  evaluate_through_map(m, Smplx::DataEvaluator()),
+                  evaluate_through_map(m, Smplx::DimensionExtractor()));
 
-  std::cout << 0 << std::endl << dgms[0] << std::endl;
-  std::cout << 1 << std::endl << dgms[1] << std::endl;
+    std::cout << 0 << std::endl << dgms[0] << std::endl;
+    std::cout << 1 << std::endl << dgms[1] << std::endl;
 
-  PersistenceFiltrationMap pfmap(p, f);
-  DimensionFunctor<PersistenceFiltrationMap, Fltr> dim(pfmap, f);
+    PersistenceFiltrationMap pfmap(p, f);
+    DimensionFunctor<PersistenceFiltrationMap, Fltr> dim(pfmap, f);
 
-  // Transpositions
-  FiltrationPersistenceMap fpmap(f, p);
-  FiltrationTranspositionVisitor visitor(p, f);
-  Smplx A;
-  A.add(0);
-  std::cout << A << std::endl;
-  std::cout << "Transposing A: " << p.transpose(fpmap[f.find(A)], dim, visitor)
-            << std::endl;  // 1.2 unpaired
+    // Transpositions
+    FiltrationPersistenceMap fpmap(f, p);
+    FiltrationTranspositionVisitor visitor(p, f);
+    Smplx A;
+    A.add(0);
+    std::cout << A << std::endl;
+    std::cout << "Transposing A: " << p.transpose(fpmap[f.find(A)], dim, visitor)
+              << std::endl;  // 1.2 unpaired
 
-  Smplx BC;
-  BC.add(1);
-  BC.add(2);
-  Smplx AB;
-  AB.add(0);
-  AB.add(1);
-  std::cout << BC << std::endl;
-  std::cout << p.transpose(fpmap[f.find(BC)], dim, visitor)
-            << std::endl;  // 3.1
-  // p.transpose(fpmap[f.find(BC)], dim, visitor);
-  std::cout << AB << std::endl;
-  std::cout << p.transpose(fpmap[f.find(AB)], dim, visitor)
-            << std::endl;  // 2.1
-  // p.transpose(fpmap[f.find(AB)], dim, visitor);
+    Smplx BC;
+    BC.add(1);
+    BC.add(2);
+    Smplx AB;
+    AB.add(0);
+    AB.add(1);
+    std::cout << BC << std::endl;
+    std::cout << p.transpose(fpmap[f.find(BC)], dim, visitor)
+              << std::endl;  // 3.1
+    // p.transpose(fpmap[f.find(BC)], dim, visitor);
+    std::cout << AB << std::endl;
+    std::cout << p.transpose(fpmap[f.find(AB)], dim, visitor)
+              << std::endl;  // 2.1
+    // p.transpose(fpmap[f.find(AB)], dim, visitor);
 
-  std::cout << p.transpose(p.begin(), dim, visitor)
-            << std::endl;  // transposition case 1.2 special
-  std::cout << p.transpose(boost::next(p.begin()), dim, visitor) << std::endl;
-  std::cout << p.transpose(boost::next(p.begin(), 3), dim, visitor)
-            << std::endl;
+    std::cout << p.transpose(p.begin(), dim, visitor)
+              << std::endl;  // transposition case 1.2 special
+    std::cout << p.transpose(boost::next(p.begin()), dim, visitor) << std::endl;
+    std::cout << p.transpose(boost::next(p.begin(), 3), dim, visitor)
+              << std::endl;
 
-  std::cout << "Landscape: " << std::endl;
+    std::cout << "Landscape: " << std::endl;
 
-  for (std::map<Dimension, PDgm>::iterator it = dgms.begin(); it != dgms.end();
-       it++) {
-    PersistenceLandscape test(it->second);
-    for (PersistenceLandscape::const_iterator i = test.begin(); i != test.end();
-         i++) {
-      std::cout << "Landscape Start" << std::endl;
-      for (LambdaCriticals::const_iterator j = i->begin(); j != i->end(); j++)
-        std::cout << *j << std::endl;
+    for (std::map<Dimension, PDgm>::iterator it = dgms.begin(); it != dgms.end();
+         it++) {
+      PersistenceLandscape test(it->second);
+      for (PersistenceLandscape::const_iterator i = test.begin(); i != test.end();
+           i++) {
+        std::cout << "Landscape Start" << std::endl;
+        for (LambdaCriticals::const_iterator j = i->begin(); j != i->end(); j++)
+          std::cout << *j << std::endl;
+      }
     }
   }
 }
+
+REGISTER_KERNEL_BUILDER(Name("LandscapeTest").Device(DEVICE_CPU), LandscapeTestOp);

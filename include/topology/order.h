@@ -1,9 +1,9 @@
 #ifndef __ORDER_H__
 #define __ORDER_H__
 
-#include "utilities/types.h"
-#include "utilities/indirect.h"
-#include "utilities/property-maps.h"
+#include "../utilities/types.h"
+#include "../utilities/indirect.h"
+#include "../utilities/property-maps.h"
 
 #include <vector>
 #include <list>

@@ -9,9 +9,9 @@
 #include <boost/lambda/lambda.hpp>
 namespace bl = boost::lambda;
 
-#include <utilities/types.h>
+#include "../utilities/types.h"
 
-#include <boost/progress.hpp>
+//#include <boost/progress.hpp>
 
 // Element_ should derive from PairCycleData
 template <class Data_, class ChainTraits_, class Element_ = use_default>
@@ -102,8 +102,8 @@ class StaticPersistence {
 
   // Function: pair_simplices()
   // Compute persistence of the filtration
-  void pair_simplices(bool progress = true);
-
+  //void pair_simplices(bool progress = true);
+  void pair_simplices();
   // Functions: Accessors
   //   begin() -              returns OrderIndex of the first element
   //   end() -                returns OrderIndex of one past the last element
@@ -146,7 +146,8 @@ class StaticPersistence {
   // Acts as an archetype and if necessary a base class for visitors passed to
   // <pair_simplices(bg, end, visitor)>.
   struct PairVisitor {
-    PairVisitor(unsigned size) : show_progress(size) {}
+    // PairVisitor(unsigned size) : show_progress(size) {}
+    PairVisitor(unsigned size) {}
     // Function: init(i)
     // Called after OrderElement pointed to by `i` has been initialized
     // (its cycle is set to be its boundary, and pair is set to self, i.e. `i`)
@@ -160,8 +161,9 @@ class StaticPersistence {
 
     // Function: finished(j)
     // Called after the processing of `j` is finished.
-    void finished(iterator j) const { ++show_progress; }
-    mutable boost::progress_display show_progress;
+    //void finished(iterator j) const { ++show_progress; }
+    void finished(iterator j) const {}
+    //mutable boost::progress_display show_progress;
   };
 
   struct PairVisitorNoProgress {

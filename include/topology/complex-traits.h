@@ -3,7 +3,7 @@
 
 #include <vector>
 #include <map>
-#include "utilities/property-maps.h"
+#include "../utilities/property-maps.h"
 
 // Class: ComplexTraits
 // Class that extracts various properties of a complex.

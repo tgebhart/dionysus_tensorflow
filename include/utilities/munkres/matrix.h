@@ -16,37 +16,40 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  */
 
-#if !defined(_MUNKRES_H_)
-#define _MUNKRES_H_
+#if !defined(_MATRIX_H_)
+#define _MATRIX_H_
 
-#include "matrix.h"
-
-#include <list>
-#include <utility>
-
-class Munkres {
+template <class T>
+class Matrix {
 public:
-	void solve(Matrix<double> &m);
+	Matrix();
+	Matrix(int rows, int columns);
+	Matrix(const Matrix<T> &other);
+	Matrix<T> & operator= (const Matrix<T> &other);
+	~Matrix();
+	// all operations except product modify the matrix in-place.
+	void resize(int rows, int columns);
+	void identity(void);
+	void clear(void);
+	T& operator () (int x, int y);
+	T trace(void);
+	Matrix<T>& transpose(void);
+	Matrix<T> product(Matrix<T> &other);
+	int minsize(void) {
+		return ((m_rows < m_columns) ? m_rows : m_columns);
+	}
+	int columns(void) {
+		return m_columns;
+	}
+	int rows(void) {
+		return m_rows;
+	}
 private:
-  static const int NORMAL = 0;
-  static const int STAR = 1;
-  static const int PRIME = 2;
-	inline bool find_uncovered_in_matrix(double,int&,int&);
-	inline bool pair_in_list(const std::pair<int,int> &, const std::list<std::pair<int,int> > &);
-	int step1(void);
-	int step2(void);
-	int step3(void);
-	int step4(void);
-	int step5(void);
-	int step6(void);
-	Matrix<int> mask_matrix;
-	Matrix<double> matrix;
-	bool *row_mask;
-	bool *col_mask;
-	int saverow, savecol;
+	T **m_matrix;
+	int m_rows;
+	int m_columns;
 };
 
-// DM: This is dangerous, but will do for now
-#include "munkres.hpp"
+#include "matrix.hpp"
 
-#endif /* !defined(_MUNKRES_H_) */
+#endif /* !defined(_MATRIX_H_) */

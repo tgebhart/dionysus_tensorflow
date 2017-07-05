@@ -2,7 +2,7 @@
 #define __CYCLES_H__
 
 #include "chain.h"
-#include "utilities/circular_list.h"
+#include "../utilities/circular_list.h"
 
 #if DEBUG_CONTAINERS
     #include <debug/vector>

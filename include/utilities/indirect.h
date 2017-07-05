@@ -210,10 +210,3 @@ make_intersection_iterator(Iterator1 cur1, Iterator1 end1, Iterator2 cur2,
 }
 
 #endif  // __INDIRECT_H__
-
-
-Format! Style:
-
-C++ online code formatter © 2014 by KrzaQ
-
-Powered by vibe.d, the D language and clang-format

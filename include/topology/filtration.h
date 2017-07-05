@@ -6,9 +6,9 @@
 
 #include "complex-traits.h"
 
-#include "utilities/indirect.h"
-#include "utilities/property-maps.h"
-#include "utilities/types.h"
+#include "../utilities/indirect.h"
+#include "../utilities/property-maps.h"
+#include "../utilities/types.h"
 
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/ordered_index.hpp>

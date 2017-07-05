@@ -1,7 +1,7 @@
 #ifndef __PERSISTENCE_LANDSCAPE_H__
 #define __PERSISTENCE_LANDSCAPE_H__
 
-#include <utilities/types.h>
+#include "../utilities/types.h"
 
 #include <vector>
 #include <iostream>

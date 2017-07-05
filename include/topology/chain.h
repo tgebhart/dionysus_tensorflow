@@ -15,7 +15,7 @@
 #include <iterator>
 #include <string>
 
-#include <utilities/containers.h>
+#include "../utilities/containers.h"
 
 /**
  * Class: ChainWrapper
@@ -140,10 +140,3 @@ class ChainWrapper : public Container_, public SizeStorage<Container_> {
 #include "chain.hpp"
 
 #endif  // __CHAIN_H__
-
-
-Format! Style:
-
-C++ online code formatter © 2014 by KrzaQ
-
-Powered by vibe.d, the D language and clang-format

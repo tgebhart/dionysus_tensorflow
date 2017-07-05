@@ -10,7 +10,7 @@
 
 #include <boost/iterator/iterator_traits.hpp>
 #include <algorithm>
-#include "utilities/log.h"
+#include "log.h"
 
 /* Associative Map */  // FIXME: this needs to have more thought put into it
 template <class UniquePairAssociativeContainer_>
