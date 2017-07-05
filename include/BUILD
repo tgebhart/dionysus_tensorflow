@@ -6,6 +6,8 @@ cc_library(
             "topology/cycles.h",
             "topology/dynamic-persistence.h",
             "topology/dynamic-persistence.hpp",
+            "topology/filtration-grid.h",
+            "topology/filtration-grid.hpp",
             "topology/filtration.h",
             "topology/filtration.hpp",
             "topology/order.h",

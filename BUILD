@@ -11,3 +11,11 @@ tf_custom_op_library(
     deps = ["//tensorflow/core/user_ops/include:topology",
             "//tensorflow/core/user_ops/include:utilities"],
 )
+
+
+tf_custom_op_library(
+    name = "filtration_grid_test.so",
+    srcs = ["filtration_grid_test.cc"],
+    deps = ["//tensorflow/core/user_ops/include:topology",
+            "//tensorflow/core/user_ops/include:utilities"],
+)

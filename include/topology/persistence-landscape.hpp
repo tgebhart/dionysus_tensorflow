@@ -11,7 +11,7 @@ template<class D>
 bool compBirth(const PDPoint<D>& a, const PDPoint<D>& b) {return a.x() < b.x();}
 
 template<class D>
-bool compDeath(const PDPoint<D>& a, const PDPoint<D>& b) {return a.y() > b.y();}
+bool compDeath(const PDPoint<D>& a, const PDPoint<D>& b) {return a.y() < b.y();}
 
 //Sort by increasing birth and decreasing death
 template<class D>
@@ -61,6 +61,7 @@ init(Iterator bg, Iterator end, const Evaluator& evaluator)
     init(PeristenceDiagram(bg, end, evaluator));
 }
 
+//Generates the persistence landscape using Algorithm 4 of Liu et al.
 template<class D>
 void
 PersistenceLandscape::
@@ -106,6 +107,7 @@ init(const PersistenceDiagram<D>& diagram)
           !(( (const_CriticalPoint) (current_crits.back())).x() == infty && ( (const_CriticalPoint) (current_crits.back())).y() == infty))
     {
       typename std::list<Point>::iterator q = std::upper_bound(p, birth_deaths.end(), front, compDeath<D>);
+
       if (q == birth_deaths.end())
       {
         current_crits.push_back(CriticalPoint(((const_Point)front).y(), 0));
