@@ -1,6 +1,6 @@
-cc_library(
+cc_inc_library(
     name = "topology",
-    srcs = ["topology/chain.h",
+    hdrs = ["topology/chain.h",
             "topology/chain.hpp",
             "topology/complex-traits.h",
             "topology/cycles.h",
@@ -22,9 +22,9 @@ cc_library(
     visibility = ["//visibility:public"],
 )
 
-cc_library(
+cc_inc_library(
     name = "utilities",
-    srcs = ["utilities/munkres/matrix.h",
+    hdrs = ["utilities/munkres/matrix.h",
             "utilities/munkres/matrix.hpp",
             "utilities/munkres/munkres.hpp",
             "utilities/munkres/munkres.h",

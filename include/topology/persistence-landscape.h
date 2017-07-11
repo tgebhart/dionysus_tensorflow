@@ -3,6 +3,7 @@
 
 #include "../utilities/types.h"
 
+
 #include <vector>
 #include <iostream>
 #include <cmath>
@@ -13,153 +14,161 @@
 
 #include "persistence-diagram.h"
 
+
 /**
  * Class: CriticalPoint
  *
  * Stores a critical point of a persistence landscape
  */
-class CriticalPoint {
- public:
-  CriticalPoint(const CriticalPoint& other) : point_(other.point_) {}
+class CriticalPoint
+{
+    public:
+                                CriticalPoint(const CriticalPoint& other):
+                                    point_(other.point_)                    {}
 
-  CriticalPoint(const RealType x = 0, const RealType y = 0) {
-    point_.first = x;
-    point_.second = y;
-  }
+                                CriticalPoint(const RealType x = 0, const RealType y = 0)
+                                                                            {point_.first = x; point_.second = y;}
 
-  RealType x() const { return point_.first; }
-  RealType y() const { return point_.second; }
+        RealType                x() const                                   { return point_.first; }
+        RealType                y() const                                   { return point_.second; }
 
-  std::ostream& operator<<(std::ostream& out) const {
-    return (out << x() << " " << y());
-  }  // << " " << data()); }
+        std::ostream&           operator<<(std::ostream& out) const         { return (out << x() << " " << y()); } // << " " << data()); }
 
- private:
-  RealType& x() { return point_.first; }
-  RealType& y() { return point_.second; }
+        bool                    operator<(CriticalPoint b) const            { return x() < b.x(); }
 
- private:
-  std::pair<RealType, RealType> point_;
+    private:
+        RealType&               x()                                         { return point_.first; }
+        RealType&               y()                                         { return point_.second; }
 
- private:
-  /* Serialization */
-  friend class boost::serialization::access;
+    private:
+        std::pair<RealType, RealType>       point_;
 
-  template <class Archive>
-  void serialize(Archive& ar, version_type);
+    private:
+        /* Serialization */
+        friend class boost::serialization::access;
+
+        template<class Archive>
+        void                    serialize(Archive& ar, version_type );
 };
 
-std::ostream& operator<<(std::ostream& out, const CriticalPoint& point) {
-  return (point.operator<<(out));
-}
+std::ostream&                   operator<<(std::ostream& out, const CriticalPoint& point)
+{ return (point.operator<<(out)); }
 
 /**
  * Class: LambdaCriticals
  *
- * Stores the critical points of the kth lambda function of a persistence
- * landscape.
+ * Stores the critical points of the kth lambda function of a persistence landscape.
  */
-class LambdaCriticals {
- public:
-  typedef CriticalPoint Point;
-  typedef std::vector<Point> CriticalVector;
-  typedef typename CriticalVector::const_iterator const_iterator;
+class LambdaCriticals
+{
+    public:
+        typedef                 CriticalPoint                                   Point;
+        typedef                 std::vector<Point>                              CriticalVector;
+        typedef                 typename CriticalVector::const_iterator         const_iterator;
 
-  LambdaCriticals() {}
+                                LambdaCriticals()                        {}
 
-  LambdaCriticals(Dimension index) : index_(index) {}
+                                LambdaCriticals( const IndexType& index ):
+                                    index_( index )                  {}
 
-  LambdaCriticals(const LambdaCriticals& other);
+                                LambdaCriticals(const LambdaCriticals& other);
 
-  template <class Iterator, class Evaluator>
-  LambdaCriticals(Iterator bg, Iterator end,
-                  const Evaluator& eval = Evaluator());
+        template<class Iterator, class Evaluator>
+                                LambdaCriticals(Iterator bg, Iterator end,
+                                                   const Evaluator& eval = Evaluator());
 
-  const_iterator begin() const { return points_.begin(); }
-  const_iterator end() const { return points_.end(); }
-  size_t size() const { return points_.size(); }
 
-  CriticalPoint front() const { return points_.front(); }
-  CriticalPoint back() const { return points_.back(); }
+        const_iterator          begin() const                                   { return points_.begin(); }
+        const_iterator          end() const                                     { return points_.end(); }
+        size_t                  size() const                                    { return points_.size(); }
 
-  void push_back(const Point& point) { points_.push_back(point); }
+        CriticalPoint           front() const                                   {return points_.front();}
+        CriticalPoint           back() const                                    {return points_.back();}
 
-  std::ostream& operator<<(std::ostream& out) const;
+        void                    push_back(const Point& point)                   { points_.push_back(point); }
 
-  Dimension index() const { return index_; }
+        std::ostream&           operator<<(std::ostream& out) const;
 
- private:
-  CriticalVector points_;
-  Dimension index_;
+        IndexType               index() const                                   { return index_; }
 
- private:
-  /* Serialization */
-  friend class boost::serialization::access;
+        RealType                calculate_value(RealType x) const;
 
-  template <class Archive>
-  void serialize(Archive& ar, version_type);
+    private:
+        CriticalVector          points_;
+        IndexType               index_;
+
+    private:
+        /* Serialization */
+        friend class boost::serialization::access;
+
+        template<class Archive>
+        void                    serialize(Archive& ar, version_type );
 };
 
-std::ostream& operator<<(std::ostream& out, const LambdaCriticals& c) {
-  return (c.operator<<(out));
-}
+std::ostream&                   operator<<(std::ostream& out, const LambdaCriticals& c)
+{ return (c.operator<<(out)); }
+
+
 
 /**
  * Class: PersistenceLandscape
  *
- * Stores an ordered list of vectors of critical points of individual lambda
- * functions
+ * Stores an ordered list of vectors of critical points of individual lambda functions
  */
-class PersistenceLandscape {
- public:
-  typedef std::vector<LambdaCriticals> LambdaVector;
-  typedef typename LambdaVector::const_iterator const_iterator;
+class PersistenceLandscape
+{
+    public:
+        typedef                 std::vector<LambdaCriticals>                    LambdaVector;
+        typedef                 typename LambdaVector::const_iterator           const_iterator;
 
-  PersistenceLandscape() {}
+                                PersistenceLandscape()                        {}
 
-  PersistenceLandscape(Dimension dimension) : dimension_(dimension) {}
+                                PersistenceLandscape( const Dimension& dimension ):
+                                    dimension_( dimension )                  {}
 
-  PersistenceLandscape(const PersistenceLandscape& other);
+                                PersistenceLandscape(const PersistenceLandscape& other);
 
-  template <class D>
-  PersistenceLandscape(const PersistenceDiagram<D>& diagram);
+        template<class D>
+                                PersistenceLandscape(const PersistenceDiagram<D>& diagram);
 
-  template <class Iterator, class Evaluator>
-  PersistenceLandscape(Iterator bg, Iterator end,
-                       const Evaluator& eval = Evaluator());
+        template<class Iterator, class Evaluator>
+                                PersistenceLandscape(Iterator bg, Iterator end,
+                                const Evaluator& eval = Evaluator());
 
-  template <class Iterator, class Evaluator>
-  void init(Iterator bg, Iterator end, const Evaluator& eval = Evaluator());
+        template<class Iterator, class Evaluator>
+        void                    init(Iterator bg, Iterator end,
+                                const Evaluator& eval = Evaluator());
 
-  template <class D>
-  void init(const PersistenceDiagram<D>& diagram);
+        template<class D>
+        void                    init(const PersistenceDiagram<D>& diagram);
 
-  const_iterator begin() const { return lambdas_.begin(); }
-  const_iterator end() const { return lambdas_.end(); }
-  size_t size() const { return lambdas_.size(); }
 
-  void push_back(const LambdaCriticals& lambda) { lambdas_.push_back(lambda); }
+        const_iterator          begin() const                               { return lambdas_.begin(); }
+        const_iterator          end() const                                 { return lambdas_.end(); }
+        size_t                  size() const                                { return lambdas_.size(); }
 
-  std::ostream& operator<<(std::ostream& out) const;
+        void                    push_back(const LambdaCriticals& lambda)               { lambdas_.push_back(lambda); }
 
-  Dimension dimension() const { return dimension_; }
+        std::ostream&           operator<<(std::ostream& out) const;
 
- private:
-  LambdaVector lambdas_;
-  Dimension dimension_;
+        Dimension               dimension() const                           { return dimension_; }
 
- private:
-  /* Serialization */
-  friend class boost::serialization::access;
+    private:
+        LambdaVector            lambdas_;
+        Dimension               dimension_;
 
-  template <class Archive>
-  void serialize(Archive& ar, version_type);
+    private:
+        /* Serialization */
+        friend class boost::serialization::access;
+
+        template<class Archive>
+        void                    serialize(Archive& ar, version_type );
 };
 
-std::ostream& operator<<(std::ostream& out, const PersistenceLandscape& pd) {
-  return (pd.operator<<(out));
-}
+std::ostream&                   operator<<(std::ostream& out, const PersistenceLandscape& pd)
+{ return (pd.operator<<(out)); }
+
 
 #include "persistence-landscape.hpp"
 
-#endif  // __PERSISTENCE_DIAGRAM_H__
+#endif // __PERSISTENCE_DIAGRAM_H__

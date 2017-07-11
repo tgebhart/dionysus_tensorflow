@@ -71,7 +71,7 @@ Matrix<T>::operator= (const Matrix<T> &other) {
 		m_rows = 0;
 		m_columns = 0;
 	}
-
+	
 	return *this;
 }
 
@@ -155,7 +155,7 @@ Matrix<T>::clear() {
 }
 
 /*export*/ template <class T>
-T
+T 
 Matrix<T>::trace() {
 	assert( m_matrix != NULL );
 
@@ -169,7 +169,7 @@ Matrix<T>::trace() {
 }
 
 /*export*/ template <class T>
-Matrix<T>&
+Matrix<T>& 
 Matrix<T>::transpose() {
 	assert( m_rows > 0 );
 	assert( m_columns > 0 );
@@ -200,7 +200,7 @@ Matrix<T>::transpose() {
 }
 
 /*export*/ template <class T>
-Matrix<T>
+Matrix<T> 
 Matrix<T>::product(Matrix<T> &other) {
 	assert( m_matrix != NULL );
 	assert( other.m_matrix != NULL );

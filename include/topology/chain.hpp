@@ -29,14 +29,14 @@ ChainWrapper()
 
 template<class C>
 ChainWrapper<C>::
-ChainWrapper(const ChainWrapper& c):
+ChainWrapper(const ChainWrapper& c): 
     ChainRepresentation(c), Size(c)
 {}
 
 template<class C>
 template<class Iterator>
 ChainWrapper<C>::
-ChainWrapper(Iterator bg, Iterator end):
+ChainWrapper(Iterator bg, Iterator end): 
     ChainRepresentation(bg, end), Size(ChainRepresentation::size())
 {}
 
@@ -44,32 +44,32 @@ template<class C>
 template<class ConsistencyCmp>
 void
 ChainWrapper<C>::
-append(const_reference x, const ConsistencyCmp& cmp)
-{
+append(const_reference x, const ConsistencyCmp& cmp)                        
+{ 
     Size::operator++();
 
     // First try the special cases that x goes at the end
     if (empty() || cmp(back(), x))
-        push_back(x);
+        push_back(x); 
     // Then try the special case that x goes at the front
     else if (cmp(x, front()))
         ContainerTraits<C,ConsistencyCmp>::push_front(*this, x);
     else
         insert(std::upper_bound(begin(), end(), x, cmp), x);
 }
-
+        
 template<class C>
 template<class OrderComparison>
-typename ChainWrapper<C>::const_reference
+typename ChainWrapper<C>::const_reference               
 ChainWrapper<C>::
 top(const OrderComparison& cmp) const
-{
+{ 
     AssertMsg(!empty(), "Chain must not be empty for low()");
     return *std::min_element(begin(), end(), cmp);
 }
 
 template<class C>
-void
+void 
 ChainWrapper<C>::
 swap(ChainWrapper& c)
 {
@@ -78,7 +78,7 @@ swap(ChainWrapper& c)
 }
 
 template<class C>
-void
+void 
 ChainWrapper<C>::
 clear()
 {
@@ -88,10 +88,10 @@ clear()
 
 template<class C>
 template<class ConsistencyComparison>
-void
+void 
 ChainWrapper<C>::
 sort(const ConsistencyComparison& cmp)
-{
+{ 
     ContainerTraits<C,ConsistencyComparison>::sort(*this, cmp);
 }
 
@@ -144,11 +144,11 @@ tostring(const OutputMap& outmap) const
 
 template<class C>
 template<class ConsistencyCmp>
-typename ChainWrapper<C>::Self&
+typename ChainWrapper<C>::Self& 
 ChainWrapper<C>::
 add(const Self& c, const ConsistencyCmp& cmp)
 {
-    // TODO: tmp-based addition is necessary and useful for Containers that are vectors,
+    // TODO: tmp-based addition is necessary and useful for Containers that are vectors, 
     //       however, I believe it creates costly overhead for Containers that are lists.
     //       Need to put some thought into this.
     ChainRepresentation     tmp;
@@ -157,24 +157,24 @@ add(const Self& c, const ConsistencyCmp& cmp)
     std::set_symmetric_difference(begin(), end(), c.begin(), c.end(), bi, cmp);
 
     CountBy(cChainAddBasic, size() + c.size() - (size() + c.size() - tmp.size())/2);
-
+    
     static_cast<ChainRepresentation*>(this)->swap(tmp);
-    static_cast<Size*>(this)->swap(bi);
+    static_cast<Size*>(this)->swap(bi);   
 
     return *this;
 }
 
 template<class C>
 template<class OrderComparison>
-typename ChainWrapper<C>::const_reference
+typename ChainWrapper<C>::const_reference 
 ChainWrapper<C>::
 get_first(const OrderComparison& cmp) const
 { return top(cmp); }
 
-
+        
 template<class C>
-template<class Archive>
-void
+template<class Archive> 
+void                        
 ChainWrapper<C>::
 serialize(Archive& ar, boost::serialization::version_type )
 {

@@ -19,3 +19,10 @@ tf_custom_op_library(
     deps = ["//tensorflow/core/user_ops/include:topology",
             "//tensorflow/core/user_ops/include:utilities"],
 )
+
+tf_custom_op_library(
+    name = "landscape_from_grid.so",
+    srcs = ["landscape-from-grid.cc"],
+    deps = ["//tensorflow/core/user_ops/include:topology",
+            "//tensorflow/core/user_ops/include:utilities"],
+)

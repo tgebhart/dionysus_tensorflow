@@ -27,7 +27,7 @@ FiltrationGrid(Iterator bg, Iterator end)
 //Gets the index of a vertex, when considering coordinates relative to vertices
 FiltrationGrid::GridIndex
 FiltrationGrid::
-get_vertex_index(VertexCoordinates coords)
+get_vertex_index(const VertexCoordinates& coords) const
 {
   /* if (coords.size() != dimensions()) throw... */
 
@@ -39,15 +39,116 @@ get_vertex_index(VertexCoordinates coords)
   return index;
 }
 
+FiltrationGrid::VertexCoordinates
+FiltrationGrid::
+get_vertex_coordinates(const GridIndex& ind) const
+{
+  VertexCoordinates coords;
+  GridIndex j = ind;
+
+  for (GridIndex i = 0; i < dimensions(); i++)
+  {
+    coords.push_back(j % sizes_[i]);
+    j = (GridIndex)std::floor(j / sizes_[i]);
+  }
+
+  return coords;
+}
+
+
+FiltrationGrid::VertexCoordinates
+FiltrationGrid::
+increment_coordinates(VertexCoordinates coords) const
+{
+  coords[0]++;
+  for (GridIndex i = 0; i < dimensions(); i++)
+  {
+    if (coords[i] >= sizes_[i])
+    {
+      if (i == (dimensions() - 1))
+      {
+        return out_of_grid();
+      }
+      else
+      {
+        coords[i + 1]++;
+        coords[i] = 0;
+      }
+    }
+  }
+
+  return coords;
+}
+
+FiltrationGrid::VertexCoordinates
+FiltrationGrid::
+decrement_coordinates(VertexCoordinates coords) const
+{
+  coords[0]--;
+  for (GridIndex i = 0; i < dimensions(); i++)
+  {
+    if (coords[i] <= 0)
+    {
+      if (i == (dimensions() - 1))
+      {
+        return first();
+      }
+      else
+      {
+        coords[i + 1]--;
+        coords[i] = sizes_[i] - 1;
+      }
+    }
+  }
+
+  return coords;
+}
+
+FiltrationGrid::VertexCoordinates
+FiltrationGrid::
+first() const
+{
+  VertexCoordinates coords;
+
+  for (GridIndex i = 0; i < dimensions(); i++)
+    coords.push_back(0);
+
+  return coords;
+}
+
+FiltrationGrid::VertexCoordinates
+FiltrationGrid::
+last() const
+{
+  VertexCoordinates coords;
+
+  for (GridIndex i = 0; i < dimensions(); i++)
+    coords.push_back(sizes_[i] - 1);
+
+  return coords;
+}
+
+FiltrationGrid::VertexCoordinates
+FiltrationGrid::
+out_of_grid() const
+{
+  VertexCoordinates coords;
+
+  for (GridIndex i = 0; i < dimensions(); i++)
+    coords.push_back(std::numeric_limits<GridIndex>::max());
+
+  return coords;
+}
+
 bool
 FiltrationGrid::
-is_valid_coord(VertexCoordinates coords)
+is_valid_coord(const VertexCoordinates& coords) const
 {
   /* if (coords.size() != dimensions()) throw... */
 
   for (GridIndex i = 0; i < dimensions(); i++)
   {
-    if (coords[i] >= sizes_[i])
+    if (coords[i] < 0 || coords[i] >= sizes_[i])
       return false;
   }
 
@@ -84,58 +185,42 @@ generate_triangulated_filtration()
     perm_string.push_back(i);
   }
 
-  for (GridIndex i = 0; i < values_.size(); i++)
+  do
   {
-    for (GridIndex j = 0; j < dimensions(); j++)
+    do
     {
-      if (vert_coords[j] >= sizes_[j] && j < (dimensions() - 1))
+      VertexCoordinates c_coords = vert_coords;
+      GridIndex c_index = get_vertex_index(c_coords);
+      std::vector< GridIndex > indices;
+      std::vector< RealType > filt_values;
+
+      indices.push_back(c_index);
+      filt_values.push_back(values_[c_index]);
+      filt.push_back(TriangulatedSimplex(indices.begin(), indices.end(),
+          *std::max_element(filt_values.begin(), filt_values.end())));
+
+
+      for (GridIndex k = 0; k < dimensions(); k++)
       {
-        vert_coords[j + 1]++;
-        vert_coords[j] = 0;
-      }
+        c_coords[perm_string[k]]++;
 
-      do
-      {
-        VertexCoordinates c_coords = vert_coords;
-        GridIndex c_index = get_vertex_index(c_coords);
-        std::vector< GridIndex > indices;
-        std::vector< RealType > filt_values;
-
-        indices.push_back(c_index);
-        filt_values.push_back(values_[c_index]);
-        filt.push_back(TriangulatedSimplex(indices.begin(), indices.end(),
-            *std::max_element(filt_values.begin(), filt_values.end())));
-
-
-        for (GridIndex k = 0; k < dimensions(); k++)
+        if (is_valid_coord(c_coords))
         {
-          c_coords[perm_string[k]]++;
 
-          // std::cout << "dimensions: " << dimensions() << std::endl;
-          // std::cout << "sizes: " << sizes_[0] << " " << sizes_[1] << std::endl;
-          //
-          // std::cout << "vert_coords: " << vert_coords[0] << ", " << vert_coords[1] << std::endl;
-          // std::cout << "c_coords: " <<  c_coords[0] << ", " << c_coords[1] << std::endl;
-          // std::cout << "perm_string: " << perm_string[0] << ", " << perm_string[1] << std::endl;
-
-          if (is_valid_coord(c_coords))
-          {
-            // std::cout << "c_coords valid" << std::endl;
-
-            c_index = get_vertex_index(c_coords);
-            indices.push_back(c_index);
-            filt_values.push_back(values_[c_index]);
-            filt.push_back(TriangulatedSimplex(indices.begin(), indices.end(),
-                *std::max_element(filt_values.begin(), filt_values.end())));
-          }
-          else
-            break;
+          c_index = get_vertex_index(c_coords);
+          indices.push_back(c_index);
+          filt_values.push_back(values_[c_index]);
+          filt.push_back(TriangulatedSimplex(indices.begin(), indices.end(),
+              *std::max_element(filt_values.begin(), filt_values.end())));
         }
-      } while(std::next_permutation(perm_string.begin(), perm_string.end()));
-    }
+        else
+          break;
+      }
+    } while(std::next_permutation(perm_string.begin(), perm_string.end()));
 
-    vert_coords[0]++;
-  }
+    vert_coords = increment_coordinates(vert_coords);
+
+  }while (vert_coords != out_of_grid());
 
   return filt;
 }

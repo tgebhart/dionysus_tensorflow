@@ -30,7 +30,7 @@ public:
 private:
   static const int NORMAL = 0;
   static const int STAR = 1;
-  static const int PRIME = 2;
+  static const int PRIME = 2; 
 	inline bool find_uncovered_in_matrix(double,int&,int&);
 	inline bool pair_in_list(const std::pair<int,int> &, const std::list<std::pair<int,int> > &);
 	int step1(void);
@@ -47,6 +47,6 @@ private:
 };
 
 // DM: This is dangerous, but will do for now
-#include "munkres.hpp"
+#include "munkres.cpp"
 
 #endif /* !defined(_MUNKRES_H_) */

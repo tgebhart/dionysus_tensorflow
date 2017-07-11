@@ -21,7 +21,7 @@ template<class T>
 std::string intostring(const T& t) { std::ostringstream out; t.operator<<(out); return out.str(); }
 
 #define AssertMsg(cond, message, ...)		do { if (!(cond)) { rError(message, ##__VA_ARGS__); rAssertSilent(cond); } } while (0)
-
+	
 #else // LOGGING
 
 #define rDebug(...)
@@ -57,11 +57,11 @@ namespace rlog
 #endif // LOGGING
 
 static rlog::StdioNode stdoutLog(STDOUT_FILENO,
-								 rlog::StdioNode::OutputColor +
+								 rlog::StdioNode::OutputColor + 
 								 rlog::StdioNode::OutputChannel);
 
 static rlog::StdioNode stderrLog(STDERR_FILENO,
-								 rlog::StdioNode::OutputColor +
+								 rlog::StdioNode::OutputColor + 
 								 rlog::StdioNode::OutputChannel);
 
 

@@ -21,7 +21,7 @@ struct VectorChains
 {
     typedef             OrderIndex_                                             OrderIndex;
     typedef             ChainWrapper<vector<OrderIndex> >                       Chain;
-
+    
     template<class U> struct rebind
     { typedef           VectorChains<U>         other; };
 };
@@ -41,7 +41,7 @@ struct ListChains
 {
     typedef             OrderIndex_                                             OrderIndex;
     typedef             ChainWrapper<List<OrderIndex> >                         Chain;
-
+    
     template<class U> struct rebind
     { typedef           ListChains<U>           other; };
 };

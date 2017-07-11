@@ -6,10 +6,6 @@
 #include "simplex.h"
 #include "filtration.h"
 #include <boost/iterator/counting_iterator.hpp>
-#include <boost/serialization/vector.hpp>
-#include <boost/serialization/access.hpp>
-#include <boost/serialization/nvp.hpp>
-#include <boost/serialization/serialization.hpp>
 
 class FiltrationGrid
 {
@@ -33,9 +29,17 @@ class FiltrationGrid
       GridIndex dimensions() const {return sizes_.size();}
       GridIndex vertex_count() const {return values_.size();}
 
-      GridIndex get_vertex_index(VertexCoordinates coords);
+      GridIndex get_vertex_index(const VertexCoordinates& coords) const;
+      VertexCoordinates get_vertex_coordinates(const GridIndex& ind) const;
 
-      bool is_valid_coord(VertexCoordinates coords);
+      VertexCoordinates increment_coordinates(VertexCoordinates coords) const;
+      VertexCoordinates decrement_coordinates(VertexCoordinates coords) const;
+
+      VertexCoordinates first() const;
+      VertexCoordinates last() const;
+      VertexCoordinates out_of_grid() const;
+
+      bool is_valid_coord(const VertexCoordinates& coords) const;
 
       void set_vertex_filtration(GridIndex index, RealType value);
       void set_vertex_filtration(VertexCoordinates coords, RealType value);
@@ -49,6 +53,8 @@ class FiltrationGrid
       VertexValues values_;
 
 };
+
+
 
 
 

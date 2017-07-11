@@ -26,17 +26,19 @@ bool compBoth(const PDPoint<D>& a, const PDPoint<D>& b)
 LambdaCriticals::
 LambdaCriticals(const LambdaCriticals& other)
 {
+  index_ = other.index_;
   points_ = CriticalVector(other.points_);
 }
 
 PersistenceLandscape::
 PersistenceLandscape(const PersistenceLandscape& other)
 {
-    lambdas_.reserve(other.size());
-    for (PersistenceLandscape::LambdaVector::const_iterator cur = lambdas_.begin();
-      cur != lambdas_.end(); ++cur){
-        lambdas_.push_back(LambdaCriticals(*cur));
-      }
+  dimension_ = other.dimension();
+  lambdas_.reserve(other.size());
+  for (PersistenceLandscape::LambdaVector::const_iterator cur = lambdas_.begin();
+    cur != lambdas_.end(); ++cur){
+      lambdas_.push_back(LambdaCriticals(*cur));
+    }
 }
 
 template<class D>
@@ -75,7 +77,7 @@ init(const PersistenceDiagram<D>& diagram)
   std::list<Point> birth_deaths(diagram.begin(), diagram.end());
   birth_deaths.sort(compBoth<D>);
 
-  int k = 1;
+  IndexType k = 1;
   while (!birth_deaths.empty())
   {
     LambdaCriticals current_crits(k);
@@ -146,9 +148,38 @@ init(const PersistenceDiagram<D>& diagram)
     }
 
     this->push_back(current_crits);
-    ++k;
+    k++;
   }
 }
+
+/*Gets the value of the lambda function at "x"*/
+RealType
+LambdaCriticals::
+calculate_value(RealType x) const
+{
+  CriticalVector criticals(points_);
+
+  std::sort(criticals.begin(), criticals.end());
+
+  CriticalVector::const_iterator upper = std::upper_bound(criticals.begin(), criticals.end(), CriticalPoint(x, 0));
+
+  if (upper == criticals.end() || upper == criticals.begin())
+    return 0;
+
+  if (upper->y() == Infinity)
+    return (--upper)->y();
+
+  const CriticalPoint b = *upper;
+  const CriticalPoint a = *(--upper);
+
+  if (a.x() == Infinity || a.x() == -Infinity)
+    return 0;
+
+  RealType y = a.y() + ((b.y() - a.y())/(b.x() - a.x()))*(x - a.x());
+
+  return y;
+}
+
 
 std::ostream&
 LambdaCriticals::
