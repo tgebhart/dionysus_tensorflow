@@ -10,12 +10,12 @@
 namespace b = boost;
 
 
-#include "../utilities/log.h"
+#include "utilities/log.h"
 #ifdef LOGGING
 static rlog::RLogChannel* rlEventQueue =             DEF_CHANNEL("utilities/eventqueue", rlog::Log_Debug);
 #endif // LOGGING
 
-#include "../utilities/binaryheap.h"
+#include "utilities/binaryheap.h"
 
 #include <iostream>
 #include <string>

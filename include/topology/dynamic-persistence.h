@@ -2,7 +2,7 @@
 #define __DYNAMIC_PERSISTENCE_H__
 
 #include "static-persistence.h"
-#include "../utilities/types.h"
+#include "utilities/types.h"
 
 #include <boost/bind.hpp>
 #include <boost/lambda/lambda.hpp>

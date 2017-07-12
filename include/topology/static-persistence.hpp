@@ -1,6 +1,6 @@
-#include "../utilities/log.h"
-#include "../utilities/containers.h"
-#include "../utilities/property-maps.h"
+#include "utilities/log.h"
+#include "utilities/containers.h"
+#include "utilities/property-maps.h"
 
 #include <boost/utility/enable_if.hpp>
 #include <boost/utility.hpp>

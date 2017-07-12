@@ -6,7 +6,7 @@
 #ifndef __VINEYARD_H__
 #define __VINEYARD_H__
 
-#include "../utilities/types.h"
+#include "utilities/types.h"
 #include <list>
 #include <string>
 

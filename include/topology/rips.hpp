@@ -2,9 +2,9 @@
 #include <utility>
 #include <boost/utility.hpp>
 #include <iostream>
-#include "../utilities/log.h"
-#include "../utilities/counter.h"
-#include "../utilities/indirect.h"
+#include "utilities/log.h"
+#include "utilities/counter.h"
+#include "utilities/indirect.h"
 #include <boost/iterator/counting_iterator.hpp>
 #include <functional>
 

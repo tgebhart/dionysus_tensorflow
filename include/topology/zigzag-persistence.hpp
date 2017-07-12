@@ -1,8 +1,8 @@
-#include "../utilities/log.h"
+#include "utilities/log.h"
 #include <boost/utility.hpp>
 #include <boost/iterator/filter_iterator.hpp>
 #include <algorithm>
-#include "../utilities/indirect.h"
+#include "utilities/indirect.h"
 #include <functional>
 
 #ifdef LOGGING

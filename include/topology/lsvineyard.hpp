@@ -1,4 +1,4 @@
-#include "../utilities/log.h"
+#include "utilities/log.h"
 
 #include <boost/function.hpp>
 #include <boost/bind.hpp>

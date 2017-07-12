@@ -1,7 +1,7 @@
 #ifndef __L2_DISTANCE_H__
 #define __L2_DISTANCE_H__
 
-#include "../utilities/types.h"
+#include "utilities/types.h"
 
 #include <vector>
 #include <fstream>

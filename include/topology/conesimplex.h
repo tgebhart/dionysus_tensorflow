@@ -9,7 +9,7 @@
 #include <list>
 #include <iostream>
 
-#include "../utilities/types.h"
+#include "utilities/types.h"
 #include "simplex.h"
 
 

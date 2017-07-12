@@ -3,9 +3,9 @@
 #include <vector>
 #include <limits>
 
-#include "../utilities/log.h"
-#include "../utilities/indirect.h"
-#include "../utilities/counter.h"
+#include "utilities/log.h"
+#include "utilities/indirect.h"
+#include "utilities/counter.h"
 
 #include <boost/iterator/transform_iterator.hpp>
 #include <boost/iterator/counting_iterator.hpp>

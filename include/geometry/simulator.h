@@ -1,8 +1,8 @@
 #ifndef __SIMULATOR_H__
 #define __SIMULATOR_H__
 
-#include "../utilities/eventqueue.h"
-#include "../utilities/indirect.h"
+#include "utilities/eventqueue.h"
+#include "utilities/indirect.h"
 
 #include <limits>
 

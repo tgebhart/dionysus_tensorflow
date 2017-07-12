@@ -6,7 +6,7 @@
 #ifndef __CHAIN_H__
 #define __CHAIN_H__
 
-//#include "../utilities/types.h"
+//#include "utilities/types.h"
 #include <boost/serialization/access.hpp>
 #include <boost/serialization/serialization.hpp>
 #include <boost/iterator/iterator_traits.hpp>
@@ -14,7 +14,7 @@
 #include <iterator>
 #include <string>
 
-#include "../utilities/containers.h"
+#include "utilities/containers.h"
 
 /**
  * Class: ChainWrapper

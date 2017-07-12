@@ -9,7 +9,7 @@
 #include <boost/lambda/lambda.hpp>
 namespace bl = boost::lambda;
 
-#include "../utilities/types.h"
+#include "utilities/types.h"
 
 #include <boost/progress.hpp>
 

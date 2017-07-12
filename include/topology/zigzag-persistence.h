@@ -2,7 +2,7 @@
 #define __ZIGZAG_PERSISTENCE_H__
 
 #include "cycles.h"
-#include "../utilities/types.h"
+#include "utilities/types.h"
 #include <sstream>
 
 #if DEBUG_CONTAINERS

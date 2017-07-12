@@ -3,7 +3,7 @@
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/nvp.hpp>
 
-#include "../utilities/munkres/munkres.h"
+#include "utilities/munkres/munkres.h"
 
 using boost::serialization::make_nvp;
 

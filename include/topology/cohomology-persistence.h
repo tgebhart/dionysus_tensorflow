@@ -17,7 +17,7 @@
 #include <utility>
 
 #include <topology/field-arithmetic.h>
-#include "../utilities/types.h"
+#include "utilities/types.h"
 
 #include <boost/optional.hpp>
 #include <boost/intrusive/list.hpp>

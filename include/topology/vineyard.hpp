@@ -3,7 +3,7 @@
 #include <fstream>
 #include <sstream>
 
-#include "../utilities/log.h"
+#include "utilities/log.h"
 
 #ifdef LOGGING
 static rlog::RLogChannel* rlVineyard =          DEF_CHANNEL("topology/vineyard", rlog::Log_Debug);

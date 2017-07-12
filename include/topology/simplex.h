@@ -11,7 +11,7 @@
 #include <list>
 #include <iostream>
 
-#include "../utilities/types.h"
+#include "utilities/types.h"
 
 #include <boost/compressed_pair.hpp>
 #include <boost/iterator/iterator_adaptor.hpp>

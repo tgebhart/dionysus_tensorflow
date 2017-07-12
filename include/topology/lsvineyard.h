@@ -13,7 +13,7 @@
 #include "topology/lowerstarfiltration.h"
 #include "topology/vineyard.h"
 
-#include "../utilities/indirect.h"
+#include "utilities/indirect.h"
 
 #include <geometry/simulator.h>
 #include <geometry/kinetic-sort.h>

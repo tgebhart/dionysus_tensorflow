@@ -1,5 +1,5 @@
-#include "../utilities/log.h"
-#include "../utilities/counter.h"
+#include "utilities/log.h"
+#include "utilities/counter.h"
 
 #ifdef LOGGING
 static rlog::RLogChannel* rlSimulator =             DEF_CHANNEL("geometry/simulator", rlog::Log_Debug);

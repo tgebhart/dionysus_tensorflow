@@ -1,4 +1,4 @@
-#include "../utilities/log.h"
+#include "utilities/log.h"
 
 template<class T>
 void

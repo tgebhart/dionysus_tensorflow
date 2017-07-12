@@ -1,14 +1,14 @@
 #include <algorithm>
 #include <vector>
-#include "../utilities/containers.h"
+#include "utilities/containers.h"
 
 #include <boost/serialization/split_member.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/binary_object.hpp>
 #include <boost/utility.hpp>
 
-#include "../utilities/log.h"
-#include "../utilities/counter.h"
+#include "utilities/log.h"
+#include "utilities/counter.h"
 
 using boost::serialization::make_nvp;
 using boost::serialization::make_binary_object;

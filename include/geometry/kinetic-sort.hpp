@@ -1,5 +1,5 @@
-#include "../utilities/log.h"
-#include "../utilities/counter.h"
+#include "utilities/log.h"
+#include "utilities/counter.h"
 
 #ifdef LOGGING
 static rlog::RLogChannel* rlKineticSort =           DEF_CHANNEL("geometry/kinetic-sort", rlog::Log_Debug);
