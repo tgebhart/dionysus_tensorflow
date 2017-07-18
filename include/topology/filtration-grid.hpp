@@ -224,3 +224,11 @@ generate_triangulated_filtration()
 
   return filt;
 }
+
+std::ostream&
+FiltrationGrid::
+operator<<(std::ostream& out) const
+{
+    std::copy(begin(values_), end(values_), std::ostream_iterator<RealType>(out, " "));
+    return out;
+}

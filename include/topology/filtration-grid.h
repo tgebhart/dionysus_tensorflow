@@ -46,6 +46,8 @@ class FiltrationGrid
 
       TriangulatedFiltration generate_triangulated_filtration();
 
+      std::ostream&           operator<<(std::ostream& out) const ;
+
     private:
 
       SizeVector sizes_;
@@ -54,7 +56,8 @@ class FiltrationGrid
 
 };
 
-
+std::ostream&
+operator<<(std::ostream& out, const FiltrationGrid& f)                       { return f.operator<<(out); }
 
 
 
