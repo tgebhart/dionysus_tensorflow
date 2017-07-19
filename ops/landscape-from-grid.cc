@@ -35,6 +35,31 @@ REGISTER_OP("LandscapeFromGridGradient")
       return Status::OK();
     });
 
+REGISTER_OP("LandscapeFromGridBatch")
+    .Input("grid_values: float32")
+    .Input("dimension: int32")
+    .Input("lambda_depth: int32")
+    .Input("sample_points: float32")
+    .Output("samples: float32")
+    .SetShapeFn([](::tensorflow::shape_inference::InferenceContext* c) {
+      auto dim = c->UnknownDim();
+      c->MakeDimForScalarInput(2, &dim);
+      c->set_output(0, c->Matrix(c->Dim(c->input(3), 0), dim));
+      return Status::OK();
+    });
+
+REGISTER_OP("LandscapeFromGridGradientBatch")
+    .Input("grid_values: float32")
+    .Input("dimension: int32")
+    .Input("lambda_depth: int32")
+    .Input("sample_points: float32")
+    .Input("gradient: float32")
+    .Output("output_grad: float32")
+    .SetShapeFn([](::tensorflow::shape_inference::InferenceContext* c) {
+      c->set_output(0, c->input(0));
+      return Status::OK();
+    });
+
 Tensor calculate_sampling(FiltrationGrid::TriangulatedFiltration filt,
                                         unsigned int dimension, unsigned int depth,
                                         const Tensor& t_sample_points)
@@ -204,5 +229,167 @@ class LandscapeFromGridGradientOp : public OpKernel
     }
 };
 
+class LandscapeFromGridBatchOp : public OpKernel
+{
+  public:
+    explicit LandscapeFromGridBatchOp(OpKernelConstruction* context) : OpKernel(context) {}
+
+    void Compute(OpKernelContext* context) override
+    {
+      typedef FiltrationGrid::TriangulatedFiltration Filtration;
+
+      const Tensor& t_grid_values = context->input(0);
+      const Tensor& t_dimension = context->input(1);
+      const Tensor& t_lambda_depth = context->input(2);
+      const Tensor& t_sample_points = context->input(3);
+
+      const TensorShape& grid_shape = t_grid_values.shape();
+      std::vector<unsigned int> sizes;
+
+      auto values = t_grid_values.flat<float>();
+      auto dimension = t_dimension.scalar<int>();
+      auto depth = t_lambda_depth.scalar<int>();
+      int sample_count = t_sample_points.NumElements();
+
+      //First dimension indexes the batch
+      int batch_count = grid_shape.dim_size(0);
+      int input_stride = 1;
+      int output_stride = sample_count * depth(0);
+
+      for (int i = 1; i < grid_shape.dims(); i++)
+      {
+        sizes.push_back(grid_shape.dim_size(i));
+        input_stride *= grid_shape.dim_size(i);
+      }
+
+      FiltrationGrid grid(sizes.begin(), sizes.end());
+
+      const float* v_data = values.data();
+      TensorShape output_shape;
+      output_shape.AddDim(batch_count);
+      output_shape.AddDim(depth(0));
+      output_shape.AddDim(sample_count);
+      Tensor* output_tensor = NULL;
+      OP_REQUIRES_OK(context, context->allocate_output(0, output_shape,
+                                                     &output_tensor));
+
+      auto output_flat = output_tensor->flat<float>();
+
+      for (int b = 0; b < batch_count; b++)
+      {
+        for (int i = 0; i < grid.vertex_count(); i++)
+          grid.set_vertex_filtration(i, v_data[(b*input_stride) + i]);
+
+        Filtration filt = grid.generate_triangulated_filtration();
+
+        Tensor calculated = calculate_sampling(filt, dimension(0), depth(0), t_sample_points);
+        auto data = calculated.flat<float>();
+
+        for (int i = 0; i < sample_count * depth(0); i++)
+          output_flat((b*output_stride) + i) = data(i);
+      }
+    }
+};
+
+class LandscapeFromGridGradientBatchOp : public OpKernel
+{
+  public:
+    explicit LandscapeFromGridGradientBatchOp(OpKernelConstruction* context) : OpKernel(context) {}
+
+    void Compute(OpKernelContext* context) override
+    {
+      typedef FiltrationGrid::TriangulatedFiltration Filtration;
+
+      const Tensor& t_grid_values = context->input(0);
+      const Tensor& t_dimension = context->input(1);
+      const Tensor& t_lambda_depth = context->input(2);
+      const Tensor& t_sample_points = context->input(3);
+      const Tensor& t_gradient = context->input(4);
+
+      const TensorShape& grid_shape = t_grid_values.shape();
+      std::vector<unsigned int> sizes;
+
+      auto values = t_grid_values.flat<float>();
+      auto gradient = t_gradient.flat<float>();
+      auto dimension = t_dimension.scalar<int>();
+      auto depth = t_lambda_depth.scalar<int>();
+      int sample_count = t_sample_points.NumElements();
+
+      //First dimension indexes the batch
+      int batch_count = grid_shape.dim_size(0);
+      int input_stride = 1;
+      int output_stride = sample_count * depth(0);
+
+      for (int i = 1; i < grid_shape.dims(); i++)
+      {
+        sizes.push_back(grid_shape.dim_size(i));
+        input_stride *= grid_shape.dim_size(i);
+      }
+
+      FiltrationGrid grid(sizes.begin(), sizes.end());
+
+      const float* v_data = values.data();
+      Tensor* output_tensor = NULL;
+      OP_REQUIRES_OK(context, context->allocate_output(0, grid_shape,
+                                                     &output_tensor));
+
+      auto output_flat = output_tensor->flat<float>();
+
+      for (int b = 0; b < batch_count; b++)
+      {
+        std::set<float> sorted_data;
+        float max_boundary = std::numeric_limits<float>::infinity();
+
+        for (int i = 0; i < grid.vertex_count(); i++)
+        {
+          grid.set_vertex_filtration(i, v_data[(b*input_stride) + i]);
+          sorted_data.insert(v_data[(b*input_stride) + i]);
+        }
+
+        float last = 0;
+        for (auto it = sorted_data.begin(); it != sorted_data.end(); it++)
+        {
+          float current = *it - last;
+          if (current != 0 && current < max_boundary)
+            max_boundary = current;
+
+          last = *it;
+        }
+
+        int b_input_stride = b * input_stride;
+        int b_output_stride = b * output_stride;
+
+        for (int i = 0; i < grid.vertex_count(); i++)
+        {
+          std::vector<float> vec_a;
+          std::vector<float> vec_b;
+          grid.set_vertex_filtration(i, v_data[b_input_stride + i]-max_boundary);
+          auto a = calculate_sampling(grid.generate_triangulated_filtration(), dimension(0), depth(0), t_sample_points).flat<float>();
+
+          for (int j = 0; j < (depth(0) * sample_count); j++)
+            vec_a.push_back(a(j));
+
+          grid.set_vertex_filtration(i, v_data[b_input_stride + i]+max_boundary);
+          auto b = calculate_sampling(grid.generate_triangulated_filtration(), dimension(0), depth(0), t_sample_points).flat<float>();
+
+          for (int j = 0; j < (depth(0) * sample_count); j++)
+            vec_b.push_back(b(j));
+
+          float sum = 0;
+          for (int j = 0; j < (depth(0) * sample_count); j++)
+          {
+            sum += ( (vec_b[j] - vec_a[j]) * gradient(b_output_stride + j) )/(2 * max_boundary);
+          }
+
+          output_flat(b_input_stride + i) = sum;
+          grid.set_vertex_filtration(i, v_data[b_input_stride + i]);
+        }
+      }
+    }
+};
+
 REGISTER_KERNEL_BUILDER(Name("LandscapeFromGrid").Device(DEVICE_CPU), LandscapeFromGridOp);
 REGISTER_KERNEL_BUILDER(Name("LandscapeFromGridGradient").Device(DEVICE_CPU), LandscapeFromGridGradientOp);
+
+REGISTER_KERNEL_BUILDER(Name("LandscapeFromGridBatch").Device(DEVICE_CPU), LandscapeFromGridBatchOp);
+REGISTER_KERNEL_BUILDER(Name("LandscapeFromGridGradientBatch").Device(DEVICE_CPU), LandscapeFromGridGradientBatchOp);

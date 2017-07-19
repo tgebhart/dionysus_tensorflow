@@ -47,8 +47,18 @@ ones = tf.ones([depth[0], len(sample_points)], tf.float32)
 result = landscape_module.landscape_from_grid(vertices, dimension, depth, sample_points)
 gradient = landscape_module.landscape_from_grid_gradient(vertices, dimension, depth, sample_points, ones)
 
+batch_result = landscape_module.landscape_from_grid_batch([vertices], dimension, depth, sample_points)
+batch_gradient = landscape_module.landscape_from_grid_gradient_batch([vertices], dimension, depth, sample_points, [ones])
+
 ret = result.eval(session=sess);
 g_ret = gradient.eval(session=sess);
+batch_ret = batch_result.eval(session=sess);
+batch_g_ret = batch_gradient.eval(session=sess);
 
 print(ret)
+print("Gradient:")
 print(g_ret)
+print("Batch:")
+print(batch_ret)
+print("Batch Gradient: ")
+print(batch_g_ret)
