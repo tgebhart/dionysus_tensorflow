@@ -1,6 +1,5 @@
 cc_library(
     name = "topology",
-    include_prefix="topology"
     hdrs = ["chain.h",
             "chain.hpp",
             "complex-traits.h",
