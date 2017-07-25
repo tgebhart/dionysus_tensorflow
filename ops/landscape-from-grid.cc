@@ -42,9 +42,13 @@ REGISTER_OP("LandscapeFromGridBatch")
     .Input("sample_points: float32")
     .Output("samples: float32")
     .SetShapeFn([](::tensorflow::shape_inference::InferenceContext* c) {
-      auto dim = c->UnknownDim();
-      c->MakeDimForScalarInput(2, &dim);
-      c->set_output(0, c->Matrix(c->Dim(c->input(3), 0), dim));
+      std::vector<tensorflow::shape_inference::DimensionHandle> dims;
+      auto dim_2 =c->UnknownDim();
+      c->MakeDimForScalarInput(2, &dim_2);
+      dims.push_back(c->UnknownDim());
+      dims.push_back(c->Dim(c->input(3), 0));
+      dims.push_back(dim_2);
+      c->set_output(0, c->MakeShape(dims));
       return Status::OK();
     });
 
@@ -79,7 +83,7 @@ Tensor calculate_sampling(FiltrationGrid::TriangulatedFiltration filt,
 
   filt.sort(DataDimensionComparison<Simplex>());
   StaticPersistence<> pers(filt);
-  pers.pair_simplices();
+  pers.pair_simplices(false);
   StaticPersistence<>::SimplexMap<Filtration> m = pers.make_simplex_map(filt);
 
   std::map<unsigned int, PersistenceDiagram<> > dgms;
