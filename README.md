@@ -31,3 +31,6 @@ Examples of doing this can be found in the `test` folder.
 #### Helpful Links
   - https://www.tensorflow.org/versions/r0.12/how_tos/adding_an_op/
   - https://groups.google.com/forum/#!topic/bazel-discuss/64v_Oxnav3I
+
+cp /home/tgebhart/Projects/dionysus_tensorflow/ops/nn_graph_persistence.cc /home/tgebhart/Projects/tensorflow/tensorflow/core/user_ops && 
+bazel build --verbose_failures -c opt //tensorflow/core/user_ops:nn_graph_persistence.so

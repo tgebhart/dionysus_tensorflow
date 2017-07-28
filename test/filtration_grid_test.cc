@@ -3,6 +3,7 @@
 #include "tensorflow/core/framework/op_kernel.h"
 
 #include "include/utilities/log.h"
+#include "include/utilities/indirect.h"
 
 #include "include/topology/simplex.h"
 #include "include/topology/filtration.h"
@@ -11,8 +12,6 @@
 #include "include/topology/dynamic-persistence.h"
 #include "include/topology/persistence-diagram.h"
 #include "include/topology/persistence-landscape.h"
-#include "include/utilities/indirect.h"
-
 
 #include <vector>
 #include <map>
