@@ -172,6 +172,9 @@ RealType                bottleneck_distance(const Diagram1& dgm1, const Diagram2
 template<class Diagram>
 RealType                wasserstein_distance(const Diagram& dgm1, const Diagram& dgm2, unsigned p);
 
+template<class Diagram>
+RealType                truncated_wasserstein_distance(const Diagram& dgm1, const Diagram& dgm2, unsigned p, float max);
+
 
 #include "persistence-diagram.hpp"
 

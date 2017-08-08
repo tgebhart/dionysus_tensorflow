@@ -21,7 +21,7 @@
 #include <iostream>
 #include <cmath>
 
-bool 
+bool
 Munkres::find_uncovered_in_matrix(double item, int &row, int &col) {
   for ( row = 0 ; row < matrix.rows() ; row++ )
     if ( !row_mask[row] )
@@ -33,17 +33,17 @@ Munkres::find_uncovered_in_matrix(double item, int &row, int &col) {
   return false;
 }
 
-bool 
+bool
 Munkres::pair_in_list(const std::pair<int,int> &needle, const std::list<std::pair<int,int> > &haystack) {
   for ( std::list<std::pair<int,int> >::const_iterator i = haystack.begin() ; i != haystack.end() ; i++ ) {
     if ( needle == *i )
       return true;
   }
-  
+
   return false;
 }
 
-int 
+int
 Munkres::step1(void) {
   for ( int row = 0 ; row < matrix.rows() ; row++ )
     for ( int col = 0 ; col < matrix.columns() ; col++ )
@@ -62,7 +62,7 @@ Munkres::step1(void) {
               break;
             }
         }
-              
+
         if ( !isstarred ) {
           mask_matrix(row,col) = STAR;
         }
@@ -71,7 +71,7 @@ Munkres::step1(void) {
   return 2;
 }
 
-int 
+int
 Munkres::step2(void) {
   int rows = matrix.rows();
   int cols = matrix.columns();
@@ -82,7 +82,7 @@ Munkres::step2(void) {
         col_mask[col] = true;
         covercount++;
       }
-      
+
   int k = matrix.minsize();
 
   if ( covercount >= k ) {
@@ -108,7 +108,7 @@ Munkres::step2(void) {
   return 3;
 }
 
-int 
+int
 Munkres::step3(void) {
   /*
   Main Zero Search
@@ -133,7 +133,7 @@ Munkres::step3(void) {
   return 4; // no starred zero in the row containing this primed zero
 }
 
-int 
+int
 Munkres::step4(void) {
   int rows = matrix.rows();
   int cols = matrix.columns();
@@ -150,9 +150,9 @@ Munkres::step4(void) {
 
    1. Construct the ``alternating sequence'' of primed and starred zeros:
 
-         Z0 : Unpaired Z' from Step 4.2 
+         Z0 : Unpaired Z' from Step 4.2
          Z1 : The Z* in the column of Z0
-         Z[2N] : The Z' in the row of Z[2N-1], if such a zero exists 
+         Z[2N] : The Z' in the row of Z[2N-1], if such a zero exists
          Z[2N+1] : The Z* in the column of Z[2N]
 
       The sequence eventually terminates with an unpaired Z' = Z[2N] for some N.
@@ -166,7 +166,7 @@ Munkres::step4(void) {
         z1.second = col;
         if ( pair_in_list(z1, seq) )
           continue;
-        
+
         madepair = true;
         seq.insert(seq.end(), z1);
         break;
@@ -202,12 +202,12 @@ Munkres::step4(void) {
       mask_matrix(i->first,i->second) = STAR;
   }
 
-  // 4. Erase all primes, uncover all columns and rows, 
+  // 4. Erase all primes, uncover all columns and rows,
   for ( int row = 0 ; row < mask_matrix.rows() ; row++ )
     for ( int col = 0 ; col < mask_matrix.columns() ; col++ )
       if ( mask_matrix(row,col) == PRIME )
         mask_matrix(row,col) = NORMAL;
-  
+
   for ( int i = 0 ; i < rows ; i++ ) {
     row_mask[i] = false;
   }
@@ -216,11 +216,11 @@ Munkres::step4(void) {
     col_mask[i] = false;
   }
 
-  // and return to Step 2. 
+  // and return to Step 2.
   return 2;
 }
 
-int 
+int
 Munkres::step5(void) {
   int rows = matrix.rows();
   int cols = matrix.columns();
@@ -230,7 +230,7 @@ Munkres::step5(void) {
    1. Let h be the smallest uncovered entry in the (modified) distance matrix.
    2. Add h to all covered rows.
    3. Subtract h from all uncovered columns
-   4. Return to Step 3, without altering stars, primes, or covers. 
+   4. Return to Step 3, without altering stars, primes, or covers.
   */
   double h = 0;
   for ( int row = 0 ; row < rows ; row++ ) {
@@ -249,7 +249,7 @@ Munkres::step5(void) {
     if ( row_mask[row] )
       for ( int col = 0 ; col < cols ; col++ )
         matrix(row,col) += h;
-  
+
   for ( int col = 0 ; col < cols ; col++ )
     if ( !col_mask[col] )
       for ( int row = 0 ; row < rows ; row++ )
@@ -258,7 +258,7 @@ Munkres::step5(void) {
   return 3;
 }
 
-void 
+void
 Munkres::solve(Matrix<double> &m) {
   // Linear assignment problem solution
   // [modifies matrix in-place.]
@@ -266,18 +266,17 @@ Munkres::solve(Matrix<double> &m) {
 
   // Assignments are remaining 0 values
   // (extra 0 values are replaced with -1)
-#ifdef DEBUG
-  std::cout << "Munkres input matrix:" << std::endl;
-  for ( int row = 0 ; row < m.rows() ; row++ ) {
-    for ( int col = 0 ; col < m.columns() ; col++ ) {
-      std::cout.width(8);
-      std::cout << m(row,col) << ",";
-    }
-    std::cout << std::endl;
-  }
-  std::cout << std::endl;
-#endif
-
+// #ifdef DEBUG
+//   std::cout << "Munkres input matrix:" << std::endl;
+//   for ( int row = 0 ; row < m.rows() ; row++ ) {
+//     for ( int col = 0 ; col < m.columns() ; col++ ) {
+//       std::cout.width(8);
+//       std::cout << m(row,col) << ",";
+//     }
+//     std::cout << std::endl;
+//   }
+//   std::cout << std::endl;
+// #endif
   double highValue = 0;
   for ( int row = 0 ; row < m.rows() ; row++ ) {
     for ( int col = 0 ; col < m.columns() ; col++ ) {
@@ -286,7 +285,9 @@ Munkres::solve(Matrix<double> &m) {
     }
   }
   highValue++;
-  
+  // std::cout << "Starting munkres solve";
+
+
   for ( int row = 0 ; row < m.rows() ; row++ )
     for ( int col = 0 ; col < m.columns() ; col++ )
       if ( m(row,col) == INFINITY )
@@ -340,17 +341,17 @@ Munkres::solve(Matrix<double> &m) {
       else
         matrix(row,col) = -1;
 
-#ifdef DEBUG
-  std::cout << "Munkres output matrix:" << std::endl;
-  for ( int row = 0 ; row < matrix.rows() ; row++ ) {
-    for ( int col = 0 ; col < matrix.columns() ; col++ ) {
-      std::cout.width(1);
-      std::cout << matrix(row,col) << ",";
-    }
-    std::cout << std::endl;
-  }
-  std::cout << std::endl;
-#endif
+// #ifdef DEBUG
+//   std::cout << "Munkres output matrix:" << std::endl;
+//   for ( int row = 0 ; row < matrix.rows() ; row++ ) {
+//     for ( int col = 0 ; col < matrix.columns() ; col++ ) {
+//       std::cout.width(1);
+//       std::cout << matrix(row,col) << ",";
+//     }
+//     std::cout << std::endl;
+//   }
+//   std::cout << std::endl;
+// #endif
 
   m = matrix;
 

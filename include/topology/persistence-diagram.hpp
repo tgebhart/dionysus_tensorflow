@@ -168,9 +168,9 @@ struct CardinaliyComparison
 
     bool            operator()(EV_const_iterator i1, EV_const_iterator i2)
     {
-        //std::cout << "Max size: " << max_size << std::endl;
-        //std::cout << "Comparing: (" << i1->first << ", " << i1->second << ") and "
-        //          <<            "(" << i2->first << ", " << i2->second << ")" << std::endl;
+        std::cout << "Max size: " << max_size << std::endl;
+        std::cout << "Comparing: (" << i1->first << ", " << i1->second << ") and "
+                 <<            "(" << i2->first << ", " << i2->second << ")" << std::endl;
 
         // FIXME: the matching is being recomputed from scratch every time, this should be fixed
         if (i2 > last)
@@ -185,6 +185,7 @@ struct CardinaliyComparison
                 boost::remove_edge(last->first, last->second, g);
             } while (--last != i2);
 
+        std::cout << "edmonds" << std::endl;
         edmonds_maximum_cardinality_matching(g, &mates[0]);
         //std::cout << "Found matching of size: " << matching_size(g, &mates[0]) << std::endl;
         return matching_size(g, &mates[0]) == max_size;
@@ -209,6 +210,8 @@ RealType                bottleneck_distance(const Diagram1& dgm1, const Diagram2
     // Compute all the edges and sort them by distance
     EdgeVector   edges;
 
+    std::cout << "Inside bottleneck_distance()" << std::endl;
+
     // Connect all diagonal points to each other
     for (unsigned i = dgm1.size(); i < max_size; ++i)
         for (unsigned j = max_size + dgm2.size(); j < 2*max_size; ++j)
@@ -225,6 +228,8 @@ RealType                bottleneck_distance(const Diagram1& dgm1, const Diagram2
         ++i;
     }
 
+    std::cout << "Second for loop finished" << std::endl;
+
     // Edges between real points and their corresponding diagonal points
     i = 0;
     for (Citer1 cur1 = dgm1.begin(); cur1 != dgm1.end(); ++cur1, ++i)
@@ -237,13 +242,15 @@ RealType                bottleneck_distance(const Diagram1& dgm1, const Diagram2
     std::sort(edges.begin(), edges.end());
     //for (i = 0; i < edges.size(); ++i)
     //    std::cout << "Edge: " << edges[i].first << " " << edges[i].second << " " << edges[i].distance << std::endl;
-
+    std::cout << "bottleneck sorting completed" << std::endl;
     // Perform cardinality based binary search
     typedef boost::counting_iterator<EV_const_iterator>         EV_counting_const_iterator;
     EV_counting_const_iterator bdistance = std::upper_bound(EV_counting_const_iterator(edges.begin()),
                                                             EV_counting_const_iterator(edges.end()),
                                                             edges.begin(),
                                                             CardinaliyComparison(max_size, edges.begin()));
+
+    std::cout << "finished bottleneck counting bdist" << std::endl;
 
     return (*bdistance)->distance;
 }
@@ -260,30 +267,36 @@ wasserstein_distance(const Diagram& dgm1, const Diagram& dgm2, unsigned p)
     unsigned size = dgm1.size() + dgm2.size();
     Norm norm;
 
+    printf("%zu %zu \n", dgm1.size(), dgm2.size());
     // Setup the matrix
     Matrix<Distance>        m(size,size);
-    for (unsigned i = 0; i < dgm1.size(); ++i)
+
+    for (unsigned i = 0; i < dgm1.size(); ++i) {
         for (unsigned j = 0; j < dgm2.size(); ++j)
         {
             const Point& p1 = *(dgm1.begin() + i);
+            //printf("%i %i \n", i, j);
             const Point& p2 = *(dgm2.begin() + j);
             m(i,j) = pow(norm(p1, p2),  p);
             m(j + dgm1.size(), i + dgm2.size()) = 0;
         }
+      }
 
-    for (unsigned i = 0; i < dgm1.size(); ++i)
+    for (unsigned i = 0; i < dgm1.size(); ++i) {
         for (unsigned j = dgm2.size(); j < size; ++j)
         {
             const Point& p1 = *(dgm1.begin() + i);
             m(i,j) = pow(norm.diagonal(p1), p);
         }
+      }
 
-    for (unsigned j = 0; j < dgm2.size(); ++j)
+    for (unsigned j = 0; j < dgm2.size(); ++j) {
         for (unsigned i = dgm1.size(); i < size; ++i)
         {
             const Point& p2 = *(dgm2.begin() + j);
             m(i,j) = pow(norm.diagonal(p2), p);
         }
+      }
 
     // Compute weighted matching
     Munkres munkres;
@@ -293,6 +306,7 @@ wasserstein_distance(const Diagram& dgm1, const Diagram& dgm2, unsigned p)
     Distance sum = 0;
     for (unsigned i = 0; i < size; i++)
         for (unsigned j = 0; j < size; j++)
+        {
             if (m(i,j) == 0)
             {
                 //std::cout << i << ": " << j << '\n';
@@ -317,10 +331,120 @@ wasserstein_distance(const Diagram& dgm1, const Diagram& dgm2, unsigned p)
                         const Point& p1 = *(dgm1.begin() + i);
                         const Point& p2 = *(dgm2.begin() + j);
                         sum += pow(norm(p1, p2),  p);
+
                     }
                 }
                 break;
             }
+          }
+
+    return sum;
+}
+
+// Wasserstein distance
+template<class Diagram>
+RealType
+truncated_wasserstein_distance(const Diagram& dgm1, const Diagram& dgm2, unsigned p, float max)
+{
+    typedef         RealType                    Distance;
+    typedef         typename Diagram::Point     Point;
+    typedef         Linfty<Point, Point>        Norm;
+
+    unsigned size = dgm1.size() + dgm2.size();
+    Norm norm;
+
+    printf("%zu %zu \n", dgm1.size(), dgm2.size());
+    // Setup the matrix
+    Matrix<Distance>        m(size,size);
+
+    for (unsigned i = 0; i < dgm1.size(); ++i) {
+        for (unsigned j = 0; j < dgm2.size(); ++j)
+        {
+            const Point& p1 = *(dgm1.begin() + i);
+            //printf("%i %i \n", i, j);
+            const Point& p2 = *(dgm2.begin() + j);
+            m(i,j) = pow(norm(p1, p2),  p);
+            m(j + dgm1.size(), i + dgm2.size()) = 0;
+        }
+      }
+
+    for (unsigned i = 0; i < dgm1.size(); ++i) {
+        for (unsigned j = dgm2.size(); j < size; ++j)
+        {
+            const Point& p1 = *(dgm1.begin() + i);
+            m(i,j) = pow(norm.diagonal(p1), p);
+        }
+      }
+
+    for (unsigned j = 0; j < dgm2.size(); ++j) {
+        for (unsigned i = dgm1.size(); i < size; ++i)
+        {
+            const Point& p2 = *(dgm2.begin() + j);
+            m(i,j) = pow(norm.diagonal(p2), p);
+        }
+      }
+
+    // Compute weighted matching
+    Munkres munkres;
+    munkres.solve(m);
+
+    // Assume everything is assigned (i.e., that we have a perfect matching)
+    Distance sum = 0;
+    for (unsigned i = 0; i < size; i++)
+        for (unsigned j = 0; j < size; j++)
+        {
+            if (m(i,j) == 0)
+            {
+                //std::cout << i << ": " << j << '\n';
+                //sum += m[i][j];
+                if (i >= dgm1.size())
+                {
+                    if (j >= dgm2.size())
+                        sum += 0;
+                    else
+                    {
+                        const Point& p2 = *(dgm2.begin() + j);
+                        float t = pow(norm.diagonal(p2), p);
+                        if (t < std::numeric_limits<double>::infinity()) {
+                            sum += pow(norm.diagonal(p2), p);
+                        } else {
+                            sum += 0;
+                        };
+                    }
+                } else
+                {
+                    if (j >= dgm2.size())
+                    {
+                        const Point& p1 = *(dgm1.begin() + i);
+                        float t = pow(norm.diagonal(p1), p);
+                        if (t < std::numeric_limits<double>::infinity()) {
+                            sum += pow(norm.diagonal(p1), p);
+                        } else {
+                            sum += 0;
+                        };
+                    } else
+                    {
+                        const Point& p1 = *(dgm1.begin() + i);
+                        const Point& p2 = *(dgm2.begin() + j);
+                        float n = norm(p1,p2);
+                        if (n >= std::numeric_limits<double>::infinity()) {
+                          // if (p1.y() >= std::numeric_limits<double>::infinity()) {
+                          //   Point np = Point(p1.x(), max, p1.data());
+                          //   n = norm(np,p2);
+                          // }
+                          // else {
+                          //   Point np = Point(p2.x(), max, p2.data());
+                          //   n = norm(p1,np);
+                          // }
+                          n = 0.0;
+                        }
+                        sum += pow(n, p);
+
+                    }
+                }
+                break;
+            }
+          }
 
     return sum;
 }
