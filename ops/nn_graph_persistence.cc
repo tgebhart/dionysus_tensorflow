@@ -523,8 +523,12 @@ class BottleneckDistanceOp : public OpKernel
       // double bottleneck = bottleneck_distance<PDgm, PDgm>(dgmsf[0], dgmss[0]);
       // std::cout << "Finished Bottleneck Computation" << std::endl;
 
-      std::cout << "Computing Wasserstein Distance" << std::endl;
-      double bottleneck = truncated_wasserstein_distance<PDgm>(dgmsf[0], dgmss[0], 1, max);
+      // std::cout << "Computing Wasserstein Distance" << std::endl;
+      // double bottleneck = truncated_wasserstein_distance<PDgm>(dgmsf[0], dgmss[0], 1, max);
+      // std::cout << "Finished wasserstein_distance Computation" << std::endl;
+
+      std::cout << "Computing Wasserstein Truncated Max Distance" << std::endl;
+      double bottleneck = truncated_max_wasserstein_distance<PDgm>(dgmsf[0], dgmss[0], 1, max);
       std::cout << "Finished wasserstein_distance Computation" << std::endl;
 
       TensorShape output_shape;
