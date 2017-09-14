@@ -3,6 +3,8 @@
 
 #include <vector>
 #include <tuple>
+#include <typeinfo>
+
 
 namespace dionysus
 {
@@ -22,6 +24,9 @@ class Diagram
 
             Value   birth() const               { return Parent::first; }
             Value   death() const               { return Parent::second; }
+            void    setBirth(double b)          { Parent::first = b; }
+            void    setDeath(double d)          { Parent::second = d; }
+
 
             Data    data;
         };
@@ -44,6 +49,8 @@ class Diagram
         template<class... Args>
         void    emplace_back(Args&&... args)    { points.emplace_back(std::forward<Args>(args)...); }
 
+        void    delete_points(std::vector<int> to_remove) { for (auto i = to_remove.rbegin(); i != to_remove.rend(); ++i) points.erase(points.begin() +*i ); }
+
     private:
         std::vector<Point>      points;
 };
@@ -63,8 +70,9 @@ template<class ReducedMatrix, class Filtration, class GetValue, class GetData>
 typename detail::Diagrams<ReducedMatrix, Filtration, GetValue, GetData>::type
 init_diagrams(const ReducedMatrix& m, const Filtration& f, const GetValue& get_value, const GetData& get_data)
 {
-    using Result  = typename detail::Diagrams<ReducedMatrix, Filtration, GetValue, GetData>::type;
+  // std::cout << "made it into diag" << std::endl;
 
+    using Result  = typename detail::Diagrams<ReducedMatrix, Filtration, GetValue, GetData>::type;
     Result diagrams;
     for (typename ReducedMatrix::Index i = 0; i < m.size(); ++i)
     {
@@ -88,8 +96,7 @@ init_diagrams(const ReducedMatrix& m, const Filtration& f, const GetValue& get_v
         {
             auto birth = get_value(s);
             auto death = get_value(f[pair]);
-
-            if (birth != death)         // skip diagonal
+            if (birth != death && f[i].data() != f[pair].data())         // skip diagonal
                 diagrams[d].emplace_back(birth, death, get_data(i));
         } // else negative: do nothing
     }

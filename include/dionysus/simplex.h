@@ -134,6 +134,58 @@ class Simplex
         Data                data_;          // TODO: optimize
 };
 
+// template<class S>
+// struct DataDimensionComparisonReverse
+// {
+//                 typedef                 S                       Simplex;
+//                 typedef                 Simplex                 first_argument_type;
+//                 typedef                 Simplex                 second_argument_type;
+//                 typedef                 bool                    result_type;
+//
+//   bool                    operator()(const Simplex& a, const Simplex& b) const
+//   {
+//       if (a.dimension() == b.dimension())
+//           return a.data() > b.data();
+//       else
+//           return a.dimension() < b.dimension();
+//   }
+// };
+
+template<class S>
+struct DataDimensionComparisonReverse
+{
+                typedef                 S                       Simplex;
+                typedef                 Simplex                 first_argument_type;
+                typedef                 Simplex                 second_argument_type;
+                typedef                 bool                    result_type;
+
+  bool                    operator()(const Simplex& a, const Simplex& b) const
+  {
+      if (a.data() == b.data())
+          return a.dimension() <= b.dimension();
+      else
+          return a.data() > b.data();
+  }
+};
+
+// template<class S>
+// struct DataDimensionComparison
+// {
+//                 typedef                 S                       Simplex;
+//                 typedef                 Simplex                 first_argument_type;
+//                 typedef                 Simplex                 second_argument_type;
+//                 typedef                 bool                    result_type;
+//
+//   bool                    operator()(const Simplex& a, const Simplex& b) const
+//   {
+//       if (a.data() == b.data())
+//           return a.dimension() <= b.dimension();
+//       else
+//           return a.data() < b.data();
+//   }
+// };
+
+
 template<class V, class D>
 size_t hash_value(const Simplex<V,D>& s)                            { return boost::hash_range(s.begin(), s.end()); }
 

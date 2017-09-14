@@ -55,9 +55,9 @@ reduce(Index i)
     if (pair != unpaired())
         pairs_[pair] = i;
 
-    pairs_[i]   = pair;
+    pairs_[i] = pair;
+    // std:: cout << i << ' ' << pair << std::endl;
     visitors_reduction_finished<>();
-
     return pair;
 }
 

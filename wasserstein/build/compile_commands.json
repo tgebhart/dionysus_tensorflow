@@ -1,0 +1,32 @@
+[
+{
+  "directory": "/home/tgebhart/cpp/hera/geom_matching/wasserstein/build",
+  "command": "/usr/bin/c++    -I/home/tgebhart/cpp/hera/geom_matching/wasserstein/include   -Wall -O3 -DNDEBUG -O3    -std=c++11 -o CMakeFiles/wasserstein_dist.dir/example/wasserstein_dist.cpp.o -c /home/tgebhart/cpp/hera/geom_matching/wasserstein/example/wasserstein_dist.cpp",
+  "file": "/home/tgebhart/cpp/hera/geom_matching/wasserstein/example/wasserstein_dist.cpp"
+},
+{
+  "directory": "/home/tgebhart/cpp/hera/geom_matching/wasserstein/build",
+  "command": "/usr/bin/c++    -I/home/tgebhart/cpp/hera/geom_matching/wasserstein/include   -Wall -O3 -DNDEBUG -O3    -std=c++11 -o CMakeFiles/wasserstein.dir/src/auction_oracle.cpp.o -c /home/tgebhart/cpp/hera/geom_matching/wasserstein/src/auction_oracle.cpp",
+  "file": "/home/tgebhart/cpp/hera/geom_matching/wasserstein/src/auction_oracle.cpp"
+},
+{
+  "directory": "/home/tgebhart/cpp/hera/geom_matching/wasserstein/build",
+  "command": "/usr/bin/c++    -I/home/tgebhart/cpp/hera/geom_matching/wasserstein/include   -Wall -O3 -DNDEBUG -O3    -std=c++11 -o CMakeFiles/wasserstein.dir/src/auction_runner_gs.cpp.o -c /home/tgebhart/cpp/hera/geom_matching/wasserstein/src/auction_runner_gs.cpp",
+  "file": "/home/tgebhart/cpp/hera/geom_matching/wasserstein/src/auction_runner_gs.cpp"
+},
+{
+  "directory": "/home/tgebhart/cpp/hera/geom_matching/wasserstein/build",
+  "command": "/usr/bin/c++    -I/home/tgebhart/cpp/hera/geom_matching/wasserstein/include   -Wall -O3 -DNDEBUG -O3    -std=c++11 -o CMakeFiles/wasserstein.dir/src/auction_runner_jac.cpp.o -c /home/tgebhart/cpp/hera/geom_matching/wasserstein/src/auction_runner_jac.cpp",
+  "file": "/home/tgebhart/cpp/hera/geom_matching/wasserstein/src/auction_runner_jac.cpp"
+},
+{
+  "directory": "/home/tgebhart/cpp/hera/geom_matching/wasserstein/build",
+  "command": "/usr/bin/c++    -I/home/tgebhart/cpp/hera/geom_matching/wasserstein/include   -Wall -O3 -DNDEBUG -O3    -std=c++11 -o CMakeFiles/wasserstein.dir/src/basic_defs.cpp.o -c /home/tgebhart/cpp/hera/geom_matching/wasserstein/src/basic_defs.cpp",
+  "file": "/home/tgebhart/cpp/hera/geom_matching/wasserstein/src/basic_defs.cpp"
+},
+{
+  "directory": "/home/tgebhart/cpp/hera/geom_matching/wasserstein/build",
+  "command": "/usr/bin/c++    -I/home/tgebhart/cpp/hera/geom_matching/wasserstein/include   -Wall -O3 -DNDEBUG -O3    -std=c++11 -o CMakeFiles/wasserstein.dir/src/wasserstein.cpp.o -c /home/tgebhart/cpp/hera/geom_matching/wasserstein/src/wasserstein.cpp",
+  "file": "/home/tgebhart/cpp/hera/geom_matching/wasserstein/src/wasserstein.cpp"
+}
+]
