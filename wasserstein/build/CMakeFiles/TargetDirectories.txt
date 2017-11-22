@@ -1,4 +1,0 @@
-/home/tgebhart/cpp/hera/geom_matching/wasserstein/build/CMakeFiles/rebuild_cache.dir
-/home/tgebhart/cpp/hera/geom_matching/wasserstein/build/CMakeFiles/edit_cache.dir
-/home/tgebhart/cpp/hera/geom_matching/wasserstein/build/CMakeFiles/wasserstein_dist.dir
-/home/tgebhart/cpp/hera/geom_matching/wasserstein/build/CMakeFiles/wasserstein.dir

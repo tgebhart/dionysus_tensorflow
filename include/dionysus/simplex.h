@@ -119,9 +119,23 @@ class Simplex
         const Data&     data() const                                { return data_; }
         Data&           data()                                      { return data_; }
 
+        // friend
+        // std::ostream&   operator<<(std::ostream& out, const Simplex& s)
+        // { out << '<' << *s.begin(); for (auto it = s.begin() + 1; it != s.end(); ++it) out << ',' << *it; out << '>'; return out; }
+
         friend
         std::ostream&   operator<<(std::ostream& out, const Simplex& s)
-        { out << '<' << *s.begin(); for (auto it = s.begin() + 1; it != s.end(); ++it) out << ',' << *it; out << '>'; return out; }
+        {
+          for (auto it = s.begin(); it != s.end(); ++it) {
+            // out << "(" << it->at(0) << "," << it->at(1) << "," << it->at(2) << "," << it->at(3) << ")";
+            out << "(";
+            for (auto n : *it) {
+                 out << n << ",";
+            }
+            out << ")";
+          };
+          return out;
+        }
 
     private:
         Vertex*         begin()                                     { return vertices_.get(); }
@@ -133,58 +147,6 @@ class Simplex
         Vertices            vertices_;
         Data                data_;          // TODO: optimize
 };
-
-// template<class S>
-// struct DataDimensionComparisonReverse
-// {
-//                 typedef                 S                       Simplex;
-//                 typedef                 Simplex                 first_argument_type;
-//                 typedef                 Simplex                 second_argument_type;
-//                 typedef                 bool                    result_type;
-//
-//   bool                    operator()(const Simplex& a, const Simplex& b) const
-//   {
-//       if (a.dimension() == b.dimension())
-//           return a.data() > b.data();
-//       else
-//           return a.dimension() < b.dimension();
-//   }
-// };
-
-template<class S>
-struct DataDimensionComparisonReverse
-{
-                typedef                 S                       Simplex;
-                typedef                 Simplex                 first_argument_type;
-                typedef                 Simplex                 second_argument_type;
-                typedef                 bool                    result_type;
-
-  bool                    operator()(const Simplex& a, const Simplex& b) const
-  {
-      if (a.data() == b.data())
-          return a.dimension() <= b.dimension();
-      else
-          return a.data() > b.data();
-  }
-};
-
-// template<class S>
-// struct DataDimensionComparison
-// {
-//                 typedef                 S                       Simplex;
-//                 typedef                 Simplex                 first_argument_type;
-//                 typedef                 Simplex                 second_argument_type;
-//                 typedef                 bool                    result_type;
-//
-//   bool                    operator()(const Simplex& a, const Simplex& b) const
-//   {
-//       if (a.data() == b.data())
-//           return a.dimension() <= b.dimension();
-//       else
-//           return a.data() < b.data();
-//   }
-// };
-
 
 template<class V, class D>
 size_t hash_value(const Simplex<V,D>& s)                            { return boost::hash_range(s.begin(), s.end()); }
@@ -220,9 +182,11 @@ struct Simplex<V,D>::BoundaryIterator:
         {
             typedef     std::not_equal_to<V>                                NotEqualVertex;
 
-            return      Simplex(dim_ - 1,
+            auto s =      Simplex(dim_ - 1,
                                 boost::make_filter_iterator(std::bind2nd(NotEqualVertex(), *(this->base())), bg_,  end_),
                                 boost::make_filter_iterator(std::bind2nd(NotEqualVertex(), *(this->base())), end_, end_));
+
+            return s;
         }
 
         short unsigned  dim_;
@@ -264,6 +228,27 @@ struct Simplex<V,D>::BoundaryChainIterator:
 
         const Field*    field_ = nullptr;
 };
+
+template<class S>
+struct DataDimensionComparisonReverse
+{
+                typedef                 S                       Simplex;
+                typedef                 Simplex                 first_argument_type;
+                typedef                 Simplex                 second_argument_type;
+                typedef                 bool                    result_type;
+
+  bool                    operator()(const Simplex& a, const Simplex& b) const
+  {
+      if (a.data() == b.data()) {
+        return a.dimension() < b.dimension();
+      };
+      if (a.dimension() == b.dimension()) {
+        return a.data() > b.data();
+      };
+      return a.dimension() < b.dimension();
+  };
+};
+
 
 
 /* Simplex */

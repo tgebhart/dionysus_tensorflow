@@ -1,2 +1,0 @@
-/usr/bin/ar qc libwasserstein.a  CMakeFiles/wasserstein.dir/src/auction_oracle.cpp.o CMakeFiles/wasserstein.dir/src/auction_runner_gs.cpp.o CMakeFiles/wasserstein.dir/src/auction_runner_jac.cpp.o CMakeFiles/wasserstein.dir/src/basic_defs.cpp.o CMakeFiles/wasserstein.dir/src/wasserstein.cpp.o
-/usr/bin/ranlib libwasserstein.a
