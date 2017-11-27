@@ -1,5 +1,4 @@
 #define BOOST_EXCEPTION_DISABLE
-// #define BOOST_NO_EXCEPTIONS
 
 #include "tensorflow/core/framework/op.h"
 #include "tensorflow/core/framework/shape_inference.h"
@@ -57,7 +56,6 @@ typedef Filtration<Smplx> Fltr;
 typedef Z2Field Field;
 typedef OrdinaryPersistenceNoNegative<Field, unsigned, std::less<unsigned>> Persistence;
 typedef Diagram<float, unsigned> Diag;
-//typedef Diag::Points DiagPoints;
 
 struct vertex_prop {
   std::string vertex_id;
@@ -67,8 +65,6 @@ typedef std::pair<Vertex, Vertex> Edge;
 typedef boost::property<boost::edge_weight_t, float> EdgeWeightProperty;
 typedef boost::property<boost::vertex_index_t, Vertex> VertexIndexProperty;
 typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, vertex_prop, EdgeWeightProperty> Graph;
-// typedef boost::labeled_graph<AdjList, Vertex, boost::hash_mapS> Graph;
-
 
 REGISTER_OP("InputGraphPersistence")
     .Attr("T: list({float})")
@@ -441,20 +437,17 @@ std::string vertexToString(Vertex v) {
 };
 
 void buildSubgraph(int idx, Fltr &f, Graph &g, int l_bound, int u_bound, Graph::vertex_descriptor u) {
-  // std::cout << "Index: " << idx << " " << f[idx] << std::endl;
   for (int i = l_bound; i <= u_bound; ++i) {
     if (f[i].dimension() > 0) {
       if (f[idx] == f[i].boundary()[0]) {
         Graph::vertex_descriptor v = boost::add_vertex(g);
         g[v].vertex_id = vertexToString(f[i].boundary()[1][0]);
-        // std::cout << "\t" << f[i].boundary()[0] << std::endl;
         boost::add_edge(u,v,f[i].data(),g);
         buildSubgraph(f.index(f[i].boundary()[1]),f,g,i+1,u_bound,v);
       };
       if (f[idx] == f[i].boundary()[1]) {
         Graph::vertex_descriptor v = boost::add_vertex(g);
         g[v].vertex_id = vertexToString(f[i].boundary()[0][0]);
-        // std::cout << "\t" << f[i].boundary()[1] << std::endl;
         boost::add_edge(u,v,f[i].data(),g);
         buildSubgraph(f.index(f[i].boundary()[0]),f,g,i+1,u_bound,v);
       };
@@ -485,8 +478,6 @@ class InputGraphPersistenceOp : public OpKernel
       const Tensor& f_input = context->input(num_inputs-1);
       auto f_tensor = f_input.flat<std::string>();
       std::string filename = f_tensor(0);
-
-
 
       Fltr f;
       std::map<Vertex,float> simplexMap;
@@ -524,22 +515,10 @@ class InputGraphPersistenceOp : public OpKernel
       f.sort(DataDimensionComparisonReverse<Smplx>());
       std::cout << "filtration size: " << f.size() << std::endl;
 
-      // for (auto& s : f)
-      // {
-      //     debugFile << s.size() << "," << s.data() << "," << s.dimension() << std::endl;
-      // }
-
       Persistence persistence(q);
       StandardReduction<Persistence> reduce(persistence);
       reduce(f);
       std::cout << "Persistence initialized" << std::endl;
-
-      // for (auto& s : f)
-      // {
-      //     std::cout << s << " at " << f.index(s) << std::endl;
-      //     for (auto sb : s.boundary(q))
-      //         debugFile << sb.element() << " * " << sb.index() << " at " << f.index(sb.index()) << std::endl;
-      // }
 
       auto diagrams = init_diagrams(persistence, f, [&](const Smplx& s) -> float { return f.index(s); },
                     [](Persistence::Index i) { return i; });
@@ -558,24 +537,11 @@ class InputGraphPersistenceOp : public OpKernel
       auto output = output_tensor->tensor<float,2>();
       int i = 0;
       for (auto& pt : diagrams[homology_dimension]) {
-        // std::cout << "birth: " << f[pt.birth()].data() << " death: " << f[pt.death()].data()  << std::endl;
         outputFile << f[pt.birth()].data() << "," << f[pt.death()].data() << "\n";
-        // for (auto sb : pt.death() {
-        //   debugFile << sb.element() << " * " << sb.index() << " at " << f.index(sb.index()) << std::endl;
-        // }
 	      output(i,0) = f[pt.birth()].data();
 	      output(i,1) = f[pt.death()].data();
-        // outputFile << pt.birth() << "," << pt.death() << "\n";
         i++;
       };
-
-      // for (auto& pt : diagrams[0]) {
-      //   // std::cout << "start: " << pt.data << "," << pt.data << std::endl;
-      //   debugFile << pt.data << " " << pt.birth() << "," << pt.death() << " " << f[pt.birth()].data() << "," << f[pt.death()].data() << f[pt.birth()] << "," << f[pt.death()]  << " " << f.index(f[pt.birth()]) << "," << f.index(f[pt.death()]) << std::endl;
-      //   for (auto sb : f[pt.death()].boundary()) {
-      //     debugFile << "\t" << sb << std::endl;
-      //   };
-      // };
     };
 };
 
@@ -659,16 +625,9 @@ class PersistentSubGraphOp : public OpKernel
 
       Graph g;
 
-      // float p_cutoff = computePercentilePersistenceLife(percentile, diagrams[0], f);
-      // float p_cutoff = computePercentilePersistenceLife(percentile, diagrams[homology_dimension], f);
-      // std::cout << "Percentile Cutoff: " << p_cutoff << std::endl;
       auto output = output_tensor->tensor<float,2>();
       int i = 0;
       for (auto& pt : diagrams[homology_dimension]) {
-        // outputFile << f[pt.birth()].data() << "," << f[pt.death()].data() << "\n";
-        // for (auto sb : pt.death() {
-        //   debugFile << sb.element() << " * " << sb.index() << " at " << f.index(sb.index()) << std::endl;
-        // }
         if (f[pt.birth()].data() - f[pt.death()].data() > lifetime && f[pt.birth()].data() - f[pt.death()].data() != f[0].data() - f[f.size()-1].data()) {
           int idx = pt.data;
           int l_bound = pt.birth();
@@ -681,23 +640,12 @@ class PersistentSubGraphOp : public OpKernel
 
 	      output(i,0) = f[pt.birth()].data();
 	      output(i,1) = f[pt.death()].data();
-        // outputFile << pt.birth() << "," << pt.death() << "\n";
         i++;
       };
       boost::dynamic_properties dp;
-      //dp.property("id", boost::get(&vertex_prop::vertex_id, g));
       dp.property("weight", boost::get(boost::edge_weight_t(), g));
 
       boost::write_graphml(outputFile, g, boost::get(&vertex_prop::vertex_id, g), dp);
-
-      // for (auto& pt : diagrams[0]) {
-      //   // std::cout << "start: " << pt.data << "," << pt.data << std::endl;
-      //   debugFile << pt.data << " " << pt.birth() << "," << pt.death() << " " << f[pt.birth()].data() << "," << f[pt.death()].data() << f[pt.birth()] << "," << f[pt.death()] << std::endl;
-      //   for (auto sb : f[pt.death()].boundary(q)) {
-      //     debugFile << "\t" << sb.element() << "," << sb.index() << std::endl;
-      //   }
-      // };
-
     };
 };
 
@@ -708,14 +656,11 @@ class WassersteinDistanceOp : public OpKernel
 
     void Compute(OpKernelContext* context) override
     {
-      //
       using PairVector = std::vector<std::pair<double, double>>;
-      //
       PairVector diagram_A, diagram_B;
       hera::AuctionParams<float> params;
       params.wasserstein_power = 2.0;
       params.delta = 0.01;
-      //params.internal_p = hera::get_infinity<double>();
       params.initial_epsilon = 0.0;
       params.epsilon_common_ratio = 0.0;
       params.max_num_phases = 30;
@@ -790,26 +735,7 @@ class WassersteinDistanceOp : public OpKernel
 
       ff.sort(DataDimensionComparisonReverse<Smplx>());
       fs.sort(DataDimensionComparisonReverse<Smplx>());
-      // if (ff.end()->dimension() != 0 && ff.end()->dimension() != 1) {
-      //   ff.erase(ff.size()-1);
-      //   std::cout << "Found hanging simplex first filtration" << std::endl;
-      // };
-      // if (fs.end()->dimension() != 0 && fs.end()->dimension() != 1) {
-      //   fs.erase(fs.size()-1);
-      //   std::cout << "Found hanging simplex second filtration" << std::endl;
-      // };
-      // std::ofstream debugFile2;
-      // debugFile2.open("/home/tgebhart/python/projects/tf_activation/logdir/data/filtration2.csv");
-      // for (auto& s : ff)
-      // {
-      //     debugFile2 << s.size() << "," << s.data() << "," << s.dimension() << std::endl;
-      // }
-      // std::ofstream debugFile;
-      // debugFile.open("/home/tgebhart/python/projects/tf_activation/logdir/data/filtration.csv");
-      // for (auto& s : fs)
-      // {
-      //     debugFile << s.size() << "," << s.data() << "," << s.dimension() << std::endl;
-      // }
+
       std::cout << "First Filtration initialized" << std::endl;
       std::cout << "Size of first filration: " << ff.size() << std::endl;
 
