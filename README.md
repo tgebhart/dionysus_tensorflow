@@ -8,7 +8,7 @@ Copy the `include` folder into `/tensorflow/core/user_ops` folder of your
 tensorflow directory:
 
 ```
-$ cp include ~/<path-to>/tensorflow/tensorflow/core/user_ops
+$ cp -r include ~/<path-to>/tensorflow/tensorflow/core/user_ops
 ```
 
 As well, copy the BUILD file located in the root directory to the same location:
@@ -20,13 +20,19 @@ $ cp BUILD ~/<path-to>/tensorflow/tensorflow/core/user_ops
 Also copy the `wasserstein` folder into the same location:
 
 ```
-$ cp wasserstein ~/<path-to>/tensorflow/tensorflow/core/user_ops
+$ cp -r wasserstein ~/<path-to>/tensorflow/tensorflow/core/user_ops
 ```
 
-Finally, copy the `bottleneck` folder into the same location:
+Copy the `bottleneck` folder into the same location:
 
 ```
-$ cp bottleneck ~/<path-to>/tensorflow/tensorflow/core/user_ops
+$ cp -r bottleneck ~/<path-to>/tensorflow/tensorflow/core/user_ops
+```
+
+Finally, copy any of the c++ op files you would like to build into Tensorflow:
+
+```
+$ cp nn_graph_persistence.cc ~/<path-to>/tensorflow/tensorflow/core/user_ops
 ```
 
 Tensorflow suppresses exceptions by default. We want to re-enable these. To do
