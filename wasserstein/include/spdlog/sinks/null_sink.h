@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "../sinks/base_sink.h"
+#include "base_sink.h"
 #include "../details/null_mutex.h"
 
 #include <mutex>
@@ -31,3 +31,4 @@ typedef null_sink<details::null_mutex> null_sink_mt;
 
 }
 }
+

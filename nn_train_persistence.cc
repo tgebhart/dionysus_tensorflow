@@ -1,4 +1,4 @@
-#define BOOST_EXCEPTION_DISABLE
+// #define BOOST_EXCEPTION_DISABLE
 // #define BOOST_NO_EXCEPTIONS
 
 #include "tensorflow/core/framework/op.h"
@@ -11,11 +11,15 @@
 #include "include/dionysus/simplex.h"
 #include "include/dionysus/filtration.h"
 #include "include/dionysus/ordinary-persistence.h"
+#include "include/dionysus/pair-recorder.h"
+#include "include/dionysus/cohomology-persistence.h"
 #include "include/dionysus/standard-reduction.h"
+#include "include/dionysus/reduction.h"
 #include "include/dionysus/diagram.h"
 #include "include/dionysus/row-reduction.h"
 #include "include/dionysus/fields/q.h"
 #include "include/dionysus/fields/z2.h"
+#include "include/dionysus/fields/zp.h"
 
 #include "wasserstein/include/wasserstein.h"
 
@@ -26,16 +30,7 @@
 #include <typeinfo>
 #include <stdexcept>
 
-namespace
-boost
-    {
-#ifdef BOOST_NO_EXCEPTIONS
-    void throw_exception( std::exception const & e ); // user defined
-#else
-    template <class E>
-    void throw_exception( E const & e );
-#endif
-    }
+using namespace boost;
 
 #include <fstream>
 #include <boost/archive/text_oarchive.hpp>
@@ -54,8 +49,11 @@ using namespace dionysus;
 typedef std::vector<int> Vertex;
 typedef Simplex<Vertex, float> Smplx;
 typedef Filtration<Smplx> Fltr;
-typedef Z2Field Field;
+// typedef Z2Field Field;
+// typedef ZpField<11> Field;
+typedef Q<> Field;
 typedef OrdinaryPersistenceNoNegative<Field, unsigned, std::less<unsigned>> Persistence;
+typedef PairChainRecorder<CohomologyPersistence<Field, unsigned, std::less<unsigned>>> CoPersistence;
 typedef Diagram<float, unsigned> Diag;
 //typedef Diag::Points DiagPoints;
 
@@ -72,11 +70,38 @@ typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, vertex
 
 REGISTER_OP("InputGraphPersistence")
     .Attr("T: list({float})")
-    .Attr("O: {float, float} = DT_FLOAT")
+    .Attr("O: {float} = DT_FLOAT")
     .Input("in_tensors: T")
     .Input("in_layers: int32")
     .Input("in_alphas: float")
     .Input("in_h_dim: int32")
+    .Input("in_filename: string")
+    .Output("output_tensor: O")
+    .SetShapeFn([](::tensorflow::shape_inference::InferenceContext* c) {
+      c->set_output(0, c->input(0));
+      return Status::OK();
+    });
+
+REGISTER_OP("InputGraphCoPersistence")
+    .Attr("T: list({float})")
+    .Attr("O: {float, float, float} = DT_FLOAT")
+    .Input("in_tensors: T")
+    .Input("in_layers: int32")
+    .Input("in_alphas: float")
+    .Input("in_h_dim: int32")
+    .Input("in_filename: string")
+    .Output("output_tensor: O")
+    .SetShapeFn([](::tensorflow::shape_inference::InferenceContext* c) {
+      c->set_output(0, c->input(0));
+      return Status::OK();
+    });
+
+REGISTER_OP("InputGraphFiltration")
+    .Attr("T: list({float})")
+    .Attr("O: {float} = DT_FLOAT")
+    .Input("in_tensors: T")
+    .Input("in_layers: int32")
+    .Input("in_alphas: float")
     .Input("in_filename: string")
     .Output("output_tensor: O")
     .SetShapeFn([](::tensorflow::shape_inference::InferenceContext* c) {
@@ -173,7 +198,9 @@ void addConvLayer(const Tensor& input_tensor, const Tensor& filter_tensor,
                   int second_layer, int idx, float alpha,
                   std::map<Vertex,float>& vertexMap) {
 
-  std::cout << "Conv: " << input_tensor.DebugString() << std::endl;
+  std::cout << "Conv input tensor: " << input_tensor.DebugString() << std::endl;
+  std::cout << "filter tensor: " << filter_tensor.DebugString() << std::endl;
+  std::cout << "output tensor: " << output_tensor.DebugString() << std::endl;
 
   const TensorShape& input_shape = input_tensor.shape();
   const TensorShape& output_shape = output_tensor.shape();
@@ -188,14 +215,16 @@ void addConvLayer(const Tensor& input_tensor, const Tensor& filter_tensor,
         for (int oc = 0; oc < output_shape.dim_size(3); ++oc) {
           int mid_h = filter_shape.dim_size(0)/2;
           int mid_w = filter_shape.dim_size(1)/2;
-          float phi = fabs(filter(mid_h,mid_w,ic,oc));
+          float phi = 0.0f;
+          phi = fabs(filter(mid_h,mid_w,ic,oc));
 
           if (phi > alpha) {
             addToVertexMap(vertexMap, ih, iw, ic, first_layer, phi);
             addToVertexMap(vertexMap, ih, iw, oc, second_layer, phi);
             f.push_back(Smplx(oneVertexId(ih,iw,ic,first_layer,ih,iw,oc,second_layer), phi));
           };
-          float old_phi = phi;
+          float old_phi = 0.0f;
+          old_phi = phi;
           for (int h = -mid_h; h < mid_h; ++h) {
             int h_idx = ih + h;
             if (h_idx >= 0 && h_idx < input_shape.dim_size(1)) {
@@ -239,7 +268,8 @@ std::vector<float> convPercentile(const Tensor& input_tensor, const Tensor& filt
         for (int oc = 0; oc < output_shape.dim_size(3); ++oc) {
           int mid_h = filter_shape.dim_size(0)/2;
           int mid_w = filter_shape.dim_size(1)/2;
-          float phi = fabs(filter(mid_h,mid_w,ic,oc));
+          float phi = 0.0f;
+          phi = fabs(filter(mid_h,mid_w,ic,oc));
           phis.push_back(phi);
           for (int h = -mid_h; h < mid_h; ++h) {
             int h_idx = ih + h;
@@ -512,19 +542,117 @@ class InputGraphPersistenceOp : public OpKernel
       Field q;
 
       std::ofstream debugFile;
-      debugFile.open("/home/tgebhart/python/projects/tf_activation/logdir/data/filtration.csv");
+      debugFile.open("/home/gebha095/projects/tf_activation/logdir/data/filtration.csv");
 
       std::cout << "Filtration initialized" << std::endl;
       f.sort(DataDimensionComparisonReverse<Smplx>());
       std::cout << "filtration size: " << f.size() << std::endl;
 
-      Persistence persistence(q);
-      StandardReduction<Persistence> reduce(persistence);
+      // for (auto& p : f) {
+      //   debugFile << p << "," << p.data() << std::endl;
+      // }
+
+      // Persistence persistence(q);
+      // StandardReduction<Persistence> reduce(persistence);
+      // reduce(f);
+      //
+      // std::cout << "Persistence initialized" << std::endl;
+      //
+      // auto diagrams = init_diagrams(persistence, f, [&](const Smplx& s) -> float { return f.index(s); },
+      //               [](Persistence::Index i) { return i; });
+
+      std::cout << "Computed Diagrams" << filename.c_str() << std::endl;
+      std::ofstream outputFile;
+      outputFile.open(filename.c_str());
+      // std::cout << "diagram size: " << diagrams[homology_dimension].size() << std::endl;
+
+      TensorShape output_shape;
+      output_shape.AddDim(f.size());
+      // output_shape.AddDim(homology_dimension+2);
+      Tensor* output_tensor = NULL;
+      OP_REQUIRES_OK(context, context->allocate_output(0, output_shape, &output_tensor));
+
+      auto output = output_tensor->tensor<float,1>();
+      // int i = 0;
+      // for (auto& pt : diagrams[homology_dimension]) {
+      //   outputFile << f[pt.birth()].data() << "," << f[pt.death()].data() << "," << pt.birth() << "," << pt.death() << "\n";
+      //   i++;
+      // };
+      for (int i = 0; i < f.size(); ++i) {
+        output(i) = f[i].data();
+      };
+    };
+};
+
+
+class InputGraphCoPersistenceOp : public OpKernel
+{
+  public:
+    explicit InputGraphCoPersistenceOp(OpKernelConstruction* context) : OpKernel(context) {}
+
+    void Compute(OpKernelContext* context) override
+    {
+
+      int num_inputs = context->num_inputs();
+
+      const Tensor& l_input = context->input(num_inputs-4);
+      auto layers = l_input.flat<int>();
+
+      const Tensor& a_input = context->input(num_inputs-3);
+      auto alphas = a_input.flat<float>();
+
+      const Tensor& h_dim = context->input(num_inputs-2);
+      auto homology_dimension_tensor = h_dim.flat<int>();
+      int homology_dimension = homology_dimension_tensor(0);
+
+      const Tensor& f_input = context->input(num_inputs-1);
+      auto f_tensor = f_input.flat<std::string>();
+      std::string filename = f_tensor(0);
+
+      Fltr f;
+      std::map<Vertex,float> simplexMap;
+      int numLayers = layers.dimension(0);
+      int layerType;
+      int layer = 0;
+      for (int i = 0; i < numLayers; ++i) {
+        if (i % (3) == 2) {
+          layerType = layers(i);
+          if (layerType == 2) {
+            addConvLayer(context->input(i-2), context->input(i-1), context->input(i), f, layer, layer+1, 0, alphas(layer), simplexMap);
+            std::cout << "Added conv layer" << std::endl;
+          };
+          if (layerType == 4) {
+            if (layers(i-2) == 2 || layers(i-2) == 0) {
+                addFCLayerFourTwo(context->input(i-2), context->input(i-1), context->input(i), f, layer, layer+1, 0, alphas(layer), simplexMap);
+                std::cout << "Added FC 4 x 2 layer" << std::endl;
+            } else {
+                addFCLayerTwoTwo(context->input(i-2), context->input(i-1), context->input(i), f, layer, layer+1, 0, alphas(layer), simplexMap);
+                std::cout << "Added FC 2 x 2 layer" << std::endl;
+            };
+          };
+          layer++;
+        };
+      };
+
+      addVertexMapToFilter(simplexMap, f);
+      Field q;
+
+      std::ofstream debugFile;
+      debugFile.open("/home/gebha095/projects/tf_activation/logdir/data/filtration.csv");
+
+      std::cout << "Filtration initialized" << std::endl;
+      f.sort(DataDimensionComparisonReverse<Smplx>());
+      std::cout << "filtration size: " << f.size() << std::endl;
+
+
+      CoPersistence cohomology_persistence(q);
+      StandardReduction<CoPersistence> reduce(cohomology_persistence);
       reduce(f);
+
       std::cout << "Persistence initialized" << std::endl;
 
-      auto diagrams = init_diagrams(persistence, f, [&](const Smplx& s) -> float { return f.index(s); },
-                    [](Persistence::Index i) { return i; });
+      auto diagrams = init_diagrams(cohomology_persistence, f, [&](const Smplx& s) -> float { return f.index(s); },
+                    [](CoPersistence::Index i) { return i; });
 
       std::cout << "Computed Diagrams" << filename.c_str() << std::endl;
       std::ofstream outputFile;
@@ -547,6 +675,84 @@ class InputGraphPersistenceOp : public OpKernel
       };
     };
 };
+
+
+class InputGraphFiltrationOp : public OpKernel
+{
+  public:
+    explicit InputGraphFiltrationOp(OpKernelConstruction* context) : OpKernel(context) {}
+
+    void Compute(OpKernelContext* context) override
+    {
+
+      int num_inputs = context->num_inputs();
+
+      const Tensor& l_input = context->input(num_inputs-3);
+      auto layers = l_input.flat<int>();
+
+      const Tensor& a_input = context->input(num_inputs-2);
+      auto alphas = a_input.flat<float>();
+
+      const Tensor& f_input = context->input(num_inputs-1);
+      auto f_tensor = f_input.flat<std::string>();
+      std::string filename = f_tensor(0);
+
+      Fltr f;
+      std::map<Vertex,float> simplexMap;
+      int numLayers = layers.dimension(0);
+      int layerType;
+      int layer = 0;
+      for (int i = 0; i < numLayers; ++i) {
+        if (i % (3) == 2) {
+          layerType = layers(i);
+          if (layerType == 2) {
+            addConvLayer(context->input(i-2), context->input(i-1), context->input(i), f, layer, layer+1, 0, alphas(layer), simplexMap);
+            std::cout << "Added conv layer" << std::endl;
+          };
+          if (layerType == 4) {
+            if (layers(i-2) == 2 || layers(i-2) == 0) {
+                addFCLayerFourTwo(context->input(i-2), context->input(i-1), context->input(i), f, layer, layer+1, 0, alphas(layer), simplexMap);
+                std::cout << "Added FC 4 x 2 layer" << std::endl;
+            } else {
+                addFCLayerTwoTwo(context->input(i-2), context->input(i-1), context->input(i), f, layer, layer+1, 0, alphas(layer), simplexMap);
+                std::cout << "Added FC 2 x 2 layer" << std::endl;
+            };
+          };
+          layer++;
+        };
+      };
+
+      addVertexMapToFilter(simplexMap, f);
+      Field q;
+
+      std::ofstream debugFile;
+      debugFile.open("/home/gebha095/projects/tf_activation/logdir/data/filtration.csv");
+
+      std::cout << "Filtration initialized" << std::endl;
+      f.sort(DataDimensionComparisonReverse<Smplx>());
+      std::cout << "filtration size: " << f.size() << std::endl;
+
+      std::cout << "Computed Diagrams" << filename.c_str() << std::endl;
+      std::ofstream outputFile;
+      outputFile.open(filename.c_str());
+
+      TensorShape output_shape;
+      output_shape.AddDim(f.size());
+      Tensor* output_tensor = NULL;
+      OP_REQUIRES_OK(context, context->allocate_output(0, output_shape, &output_tensor));
+
+      auto output = output_tensor->tensor<float,1>();
+      // int i = 0;
+      // for (auto& pt : diagrams[homology_dimension]) {
+      //   outputFile << f[pt.birth()].data() << "," << f[pt.death()].data() << "," << pt.birth() << "," << pt.death() << "\n";
+      //   i++;
+      // };
+      for (int i = 0; i < f.size(); ++i) {
+        output(i) = f[i].data();
+      };
+    };
+};
+
 
 class PersistentSubGraphOp : public OpKernel
 {
@@ -827,6 +1033,8 @@ class LayerwisePercentileOp : public OpKernel
 
 
 REGISTER_KERNEL_BUILDER(Name("InputGraphPersistence").Device(DEVICE_CPU), InputGraphPersistenceOp);
+REGISTER_KERNEL_BUILDER(Name("InputGraphCoPersistence").Device(DEVICE_CPU), InputGraphCoPersistenceOp);
+REGISTER_KERNEL_BUILDER(Name("InputGraphFiltration").Device(DEVICE_CPU), InputGraphFiltrationOp);
 REGISTER_KERNEL_BUILDER(Name("PersistentSubGraph").Device(DEVICE_CPU), PersistentSubGraphOp);
 REGISTER_KERNEL_BUILDER(Name("WassersteinDistance").Device(DEVICE_CPU), WassersteinDistanceOp);
 REGISTER_KERNEL_BUILDER(Name("LayerwisePercentile").Device(DEVICE_CPU), LayerwisePercentileOp);

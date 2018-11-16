@@ -29,10 +29,16 @@ Finally, copy the `bottleneck` folder into the same location:
 $ cp bottleneck ~/<path-to>/tensorflow/tensorflow/core/user_ops
 ```
 
-From the root of your tensorflow directory, build the new operation using Bazel:
+Tensorflow suppresses exceptions by default. We want to re-enable these. To do
+this, find the tensorflow.bzl file in the tensorflow source. Search for
+`-fno-exceptions` and delete this line.
+
+From the root of your tensorflow directory, build the new operation using Bazel.
+The library is written for c++14 standard, so you need to pass options down to
+bazel to override Tensorflow's default gcc-4/c++-11 build.
 
 ```
-$ bazel build -c opt //tensorflow/core/user_ops:<name-of-op-file>.so
+$ bazel build -c opt //tensorflow/core/user_ops:<name-of-op-file>.so --cxxopt="-std=c++14" -cxxopt="-D_GLIBCXX_USE_CXX14_ABI=0"
 ```
 
 Upon successful build, you can use the operation in tensorflow in python.

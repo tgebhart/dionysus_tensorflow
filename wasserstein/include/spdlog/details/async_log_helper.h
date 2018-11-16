@@ -394,3 +394,6 @@ inline void spdlog::details::async_log_helper::set_error_handler(spdlog::log_err
 {
     _err_handler = err_handler;
 }
+
+
+

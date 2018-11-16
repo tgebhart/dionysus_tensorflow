@@ -130,3 +130,4 @@ typedef ansicolor_stderr_sink<details::null_mutex> ansicolor_stderr_sink_st;
 
 } // namespace sinks
 } // namespace spdlog
+

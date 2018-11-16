@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "../sinks/base_sink.h"
+#include "base_sink.h"
 #include "../details/null_mutex.h"
 #include "../details/file_helper.h"
 #include "../fmt/fmt.h"

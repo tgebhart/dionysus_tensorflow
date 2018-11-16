@@ -44,3 +44,4 @@ private:
 }
 
 #include "details/pattern_formatter_impl.h"
+

@@ -122,17 +122,16 @@ class Simplex
         // friend
         // std::ostream&   operator<<(std::ostream& out, const Simplex& s)
         // { out << '<' << *s.begin(); for (auto it = s.begin() + 1; it != s.end(); ++it) out << ',' << *it; out << '>'; return out; }
-
         friend
         std::ostream&   operator<<(std::ostream& out, const Simplex& s)
         {
           for (auto it = s.begin(); it != s.end(); ++it) {
             // out << "(" << it->at(0) << "," << it->at(1) << "," << it->at(2) << "," << it->at(3) << ")";
-            out << "(";
+            out << "";
             for (auto n : *it) {
                  out << n << ",";
             }
-            out << ")";
+            out << "";
           };
           return out;
         }
@@ -146,6 +145,26 @@ class Simplex
         //boost::compressed_pair<Vertices, Data>      vertices_data_;
         Vertices            vertices_;
         Data                data_;          // TODO: optimize
+};
+
+template<class S>
+struct DataDimensionComparisonReverse
+{
+                typedef                 S                       Simplex;
+                typedef                 Simplex                 first_argument_type;
+                typedef                 Simplex                 second_argument_type;
+                typedef                 bool                    result_type;
+
+  bool                    operator()(const Simplex& a, const Simplex& b) const
+  {
+    if (a.data() == b.data()) {
+      return a.dimension() < b.dimension();
+    };
+    if (a.dimension() == b.dimension()) {
+      return a.data() > b.data();
+    };
+    return a.dimension() < b.dimension();
+  };
 };
 
 template<class V, class D>
@@ -182,11 +201,9 @@ struct Simplex<V,D>::BoundaryIterator:
         {
             typedef     std::not_equal_to<V>                                NotEqualVertex;
 
-            auto s =      Simplex(dim_ - 1,
+            return      Simplex(dim_ - 1,
                                 boost::make_filter_iterator(std::bind2nd(NotEqualVertex(), *(this->base())), bg_,  end_),
                                 boost::make_filter_iterator(std::bind2nd(NotEqualVertex(), *(this->base())), end_, end_));
-
-            return s;
         }
 
         short unsigned  dim_;
@@ -229,27 +246,6 @@ struct Simplex<V,D>::BoundaryChainIterator:
         const Field*    field_ = nullptr;
 };
 
-template<class S>
-struct DataDimensionComparisonReverse
-{
-                typedef                 S                       Simplex;
-                typedef                 Simplex                 first_argument_type;
-                typedef                 Simplex                 second_argument_type;
-                typedef                 bool                    result_type;
-
-  bool                    operator()(const Simplex& a, const Simplex& b) const
-  {
-      if (a.data() == b.data()) {
-        return a.dimension() < b.dimension();
-      };
-      if (a.dimension() == b.dimension()) {
-        return a.data() > b.data();
-      };
-      return a.dimension() < b.dimension();
-  };
-};
-
-
 
 /* Simplex */
 template<class V, class D>
@@ -271,7 +267,11 @@ boundary_end() const
 
 template<class V, class D>
 template<class F>
+#if defined(_MSC_VER)
+typename Simplex<V,D>::BoundaryChainIterator<F>
+#else
 typename Simplex<V,D>::template BoundaryChainIterator<F>
+#endif
 Simplex<V,D>::
 boundary_begin(const F& field) const
 {
@@ -281,7 +281,11 @@ boundary_begin(const F& field) const
 
 template<class V, class D>
 template<class F>
+#if defined(_MSC_VER)
+typename Simplex<V,D>::BoundaryChainIterator<F>
+#else
 typename Simplex<V,D>::template BoundaryChainIterator<F>
+#endif
 Simplex<V,D>::
 boundary_end(const F& field) const
 {

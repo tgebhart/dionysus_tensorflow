@@ -24,7 +24,7 @@ class Diagram
             Value   death() const               { return Parent::second; }
 
             // FIXME: temporary hack
-            Value   operator[](size_t i) const  { if (i == 0) return birth(); else if (i > 0) return death(); }
+            Value   operator[](size_t i) const  { if (i == 0) return birth(); return death(); }
 
             Data    data;
         };
@@ -71,7 +71,6 @@ init_diagrams(const ReducedMatrix& m, const Filtration& f, const GetValue& get_v
     Result diagrams;
     for (typename ReducedMatrix::Index i = 0; i < m.size(); ++i)
     {
-      // std::cout << i << std::endl;
         if (m.skip(i))
             continue;
 
@@ -87,7 +86,6 @@ init_diagrams(const ReducedMatrix& m, const Filtration& f, const GetValue& get_v
             auto  birth = get_value(s);
             using Value = decltype(birth);
             Value death = std::numeric_limits<Value>::infinity();
-            death = get_value(f[f.size()-1]);
             diagrams[d].emplace_back(birth, death, get_data(i));
         } else if (pair > i)       // positive
         {

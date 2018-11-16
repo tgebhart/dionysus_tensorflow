@@ -86,16 +86,16 @@ public:
     ItemSliceR get_second_best_slice() const;
 
     template<typename ...Args>
-    // decltype(auto) emplace(Args&&... args)
-    // {
-    //     return keeper.emplace(std::forward<Args>(args)...);
-    // }
+    decltype(auto) emplace(Args&&... args)
+    {
+        return keeper.emplace(std::forward<Args>(args)...);
+    }
 
 
     IterTypeR begin()  { return keeper.begin(); }
     IterTypeR end()    { return keeper.end(); }
     void erase(IterTypeR iter) { assert(iter != keeper.end()); keeper.erase(iter); }
-    // decltype(auto) insert(const ItemSliceR& item) { return keeper.insert(item); }
+    decltype(auto) insert(const ItemSliceR& item) { return keeper.insert(item); }
     size_t size() const { return keeper.size(); }
     bool empty() const { return keeper.empty(); }
 //private:

@@ -10,7 +10,7 @@
 // all locking is taken care of here so no locking needed by the implementers..
 //
 
-#include "../sinks/sink.h"
+#include "sink.h"
 #include "../formatter.h"
 #include "../common.h"
 #include "../details/log_msg.h"

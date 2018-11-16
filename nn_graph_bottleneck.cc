@@ -1,5 +1,5 @@
-#define BOOST_EXCEPTION_DISABLE
-#define BOOST_NO_EXCEPTIONS
+// #define BOOST_EXCEPTION_DISABLE
+// #define BOOST_NO_EXCEPTIONS
 
 #include "tensorflow/core/framework/op.h"
 #include "tensorflow/core/framework/shape_inference.h"
